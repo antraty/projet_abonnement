@@ -1,0 +1,9 @@
+{
+    "retention_days": 30,
+    "grace_period": 7,
+    "smtp_host": "",
+    "smtp_port": 587,
+    "smtp_user": "",
+    "smtp_password": "",
+    "auto_archive": true
+}
