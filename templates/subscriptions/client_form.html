@@ -8,9 +8,9 @@
 <div style="max-width: 600px; margin: 0 auto;">
     <h2>
         {% if editing %}
-            ✏️ Modifier le Client
+            Modifier le Client
         {% else %}
-            👥 Ajouter un Nouveau Client
+            Ajouter un Nouveau Client
         {% endif %}
     </h2>
     
@@ -47,10 +47,10 @@
             
             <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                 <button type="submit" class="btn" style="flex: 1;">
-                    {% if editing %}💾 Sauvegarder{% else %}✅ Créer le Client{% endif %}
+                    {% if editing %}💾 Sauvegarder{% else %}Créer le Client{% endif %}
                 </button>
                 <a href="{% url 'subscriptions:client_list' %}" class="btn btn-secondary" style="flex: 1; text-align: center;">
-                    ❌ Annuler
+                    Annuler
                 </a>
             </div>
         </form>

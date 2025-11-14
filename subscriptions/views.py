@@ -31,10 +31,7 @@ def dashboard(request):
         statut='actif'
     )
     
-    # Derniers abonnements créés
     derniers_abonnements = Subscription.objects.all().order_by('-date_creation')[:5]
-    
-    # Statistiques avancées
     advanced_stats = get_advanced_stats()
     
     # Générer les graphiques
@@ -54,11 +51,11 @@ def dashboard(request):
     
     return render(request, 'subscriptions/dashboard.html', context)
 
+
 def client_list(request):
-    """Liste de tous les clients avec recherche et filtres"""
     clients = Client.objects.all().order_by('nom')
     
-    # Recherche
+    # Recherche et filtre
     query = request.GET.get('q')
     if query:
         clients = clients.filter(
@@ -67,8 +64,6 @@ def client_list(request):
             Q(nom_entreprise__icontains=query) |
             Q(telephone__icontains=query)
         )
-    
-    # Filtre par type de client
     type_filter = request.GET.get('type')
     if type_filter:
         clients = clients.filter(type_client=type_filter)
@@ -80,34 +75,8 @@ def client_list(request):
     }
     return render(request, 'subscriptions/client_list.html', context)
 
-def subscription_list(request):
-    """Liste de tous les abonnements avec recherche et filtres"""
-    abonnements = Subscription.objects.all().order_by('-date_creation')
-    
-    # Recherche
-    query = request.GET.get('q')
-    if query:
-        abonnements = abonnements.filter(
-            Q(nom_abonnement__icontains=query) |
-            Q(client__nom__icontains=query) |
-            Q(client__nom_entreprise__icontains=query) |
-            Q(description__icontains=query)
-        )
-    
-    # Filtre par statut
-    statut_filter = request.GET.get('statut')
-    if statut_filter:
-        abonnements = abonnements.filter(statut=statut_filter)
-    
-    context = {
-        'abonnements': abonnements,
-        'query': query or '',
-        'statut_filter': statut_filter or '',
-    }
-    return render(request, 'subscriptions/subscription_list.html', context)
 
 def client_create(request):
-    """Créer un nouveau client"""
     if request.method == 'POST':
         form = ClientForm(request.POST)
         if form.is_valid():
@@ -119,25 +88,8 @@ def client_create(request):
     
     return render(request, 'subscriptions/client_form.html', {'form': form})
 
-def subscription_create(request):
-    """Créer un nouvel abonnement"""
-    if request.method == 'POST':
-        form = SubscriptionForm(request.POST)
-        if form.is_valid():
-            abonnement = form.save()
-            messages.success(request, 'Abonnement créé avec succès !')
-            
-            # Envoyer une notification email
-            send_new_subscription_notification(abonnement)
-            
-            return redirect('subscriptions:subscription_list')
-    else:
-        form = SubscriptionForm()
-    
-    return render(request, 'subscriptions/subscription_form.html', {'form': form})
 
 def client_edit(request, pk):
-    """Modifier un client existant"""
     client = get_object_or_404(Client, pk=pk)
     
     if request.method == 'POST':
@@ -155,50 +107,8 @@ def client_edit(request, pk):
         'editing': True
     })
 
-def client_delete(request, pk):
-    """Supprimer un client"""
-    client = get_object_or_404(Client, pk=pk)
-    
-    if request.method == 'POST':
-        client.delete()
-        messages.success(request, 'Client supprimé avec succès !')
-        return redirect('subscriptions:client_list')
-    
-    return render(request, 'subscriptions/client_confirm_delete.html', {'client': client})
-
-def subscription_edit(request, pk):
-    """Modifier un abonnement existant"""
-    abonnement = get_object_or_404(Subscription, pk=pk)
-    
-    if request.method == 'POST':
-        form = SubscriptionForm(request.POST, instance=abonnement)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Abonnement modifié avec succès !')
-            return redirect('subscriptions:subscription_list')
-    else:
-        form = SubscriptionForm(instance=abonnement)
-    
-    return render(request, 'subscriptions/subscription_form.html', {
-        'form': form,
-        'abonnement': abonnement,
-        'editing': True
-    })
-
-def subscription_delete(request, pk):
-    """Supprimer un abonnement"""
-    abonnement = get_object_or_404(Subscription, pk=pk)
-    
-    if request.method == 'POST':
-        abonnement.delete()
-        messages.success(request, 'Abonnement supprimé avec succès !')
-        return redirect('subscriptions:subscription_list')
-    
-    return render(request, 'subscriptions/subscription_confirm_delete.html', {'abonnement': abonnement})
-
 
 def export_clients_csv(request):
-    """Exporter la liste des clients en CSV"""
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="clients.csv"'
     
@@ -219,38 +129,23 @@ def export_clients_csv(request):
     
     return response
 
-def export_subscriptions_csv(request):
-    """Exporter la liste des abonnements en CSV"""
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="abonnements.csv"'
+
+def client_delete(request, pk):
+    client = get_object_or_404(Client, pk=pk)
     
-    writer = csv.writer(response)
-    writer.writerow(['Nom Abonnement', 'Client', 'Email Client', 'Prix (€)', 'Date Début', 'Date Fin', 'Durée (mois)', 'Statut', 'Description'])
+    if request.method == 'POST':
+        client.delete()
+        messages.success(request, 'Client supprimé avec succès !')
+        return redirect('subscriptions:client_list')
     
-    abonnements = Subscription.objects.all().order_by('-date_creation')
-    for abonnement in abonnements:
-        writer.writerow([
-            abonnement.nom_abonnement,
-            abonnement.client.nom,
-            abonnement.client.email,
-            str(abonnement.prix),
-            abonnement.date_debut.strftime('%d/%m/%Y'),
-            abonnement.date_fin.strftime('%d/%m/%Y'),
-            str(abonnement.duree_mois),
-            abonnement.get_statut_display(),
-            abonnement.description or ''
-        ])
-    
-    return response
+    return render(request, 'subscriptions/client_confirm_delete.html', {'client': client})
+
 
 def export_clients_pdf(request):
-    """Exporter la liste des clients en PDF"""
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
-    
     elements = []
     
-    # Titre
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
         'CustomTitle',
@@ -263,7 +158,6 @@ def export_clients_pdf(request):
     elements.append(Paragraph("Liste des Clients - Gestion d'Abonnements", title_style))
     elements.append(Spacer(1, 0.2*inch))
     
-    # Données
     clients = Client.objects.all().order_by('nom')
     
     if clients:
@@ -310,8 +204,103 @@ def export_clients_pdf(request):
     
     return response
 
+
+
+def subscription_list(request):
+    abonnements = Subscription.objects.all().order_by('-date_creation')
+    
+    # Recherche et filtre
+    query = request.GET.get('q')
+    if query:
+        abonnements = abonnements.filter(
+            Q(nom_abonnement__icontains=query) |
+            Q(client__nom__icontains=query) |
+            Q(client__nom_entreprise__icontains=query) |
+            Q(description__icontains=query)
+        )
+    statut_filter = request.GET.get('statut')
+    if statut_filter:
+        abonnements = abonnements.filter(statut=statut_filter)
+    
+    context = {
+        'abonnements': abonnements,
+        'query': query or '',
+        'statut_filter': statut_filter or '',
+    }
+    return render(request, 'subscriptions/subscription_list.html', context)
+
+
+def subscription_create(request):
+    if request.method == 'POST':
+        form = SubscriptionForm(request.POST)
+        if form.is_valid():
+            abonnement = form.save()
+            messages.success(request, 'Abonnement créé avec succès !')
+            
+            # Envoyer une notification email
+            send_new_subscription_notification(abonnement)
+            
+            return redirect('subscriptions:subscription_list')
+    else:
+        form = SubscriptionForm()
+    
+    return render(request, 'subscriptions/subscription_form.html', {'form': form})
+
+
+def subscription_edit(request, pk):
+    abonnement = get_object_or_404(Subscription, pk=pk)
+    
+    if request.method == 'POST':
+        form = SubscriptionForm(request.POST, instance=abonnement)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Abonnement modifié avec succès !')
+            return redirect('subscriptions:subscription_list')
+    else:
+        form = SubscriptionForm(instance=abonnement)
+    
+    return render(request, 'subscriptions/subscription_form.html', {
+        'form': form,
+        'abonnement': abonnement,
+        'editing': True
+    })
+
+
+def subscription_delete(request, pk):
+    abonnement = get_object_or_404(Subscription, pk=pk)
+    
+    if request.method == 'POST':
+        abonnement.delete()
+        messages.success(request, 'Abonnement supprimé avec succès !')
+        return redirect('subscriptions:subscription_list')
+    
+    return render(request, 'subscriptions/subscription_confirm_delete.html', {'abonnement': abonnement})
+
+
+def export_subscriptions_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="abonnements.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Nom Abonnement', 'Client', 'Email Client', 'Prix (€)', 'Date Début', 'Date Fin', 'Durée (mois)', 'Statut', 'Description'])
+    
+    abonnements = Subscription.objects.all().order_by('-date_creation')
+    for abonnement in abonnements:
+        writer.writerow([
+            abonnement.nom_abonnement,
+            abonnement.client.nom,
+            abonnement.client.email,
+            str(abonnement.prix),
+            abonnement.date_debut.strftime('%d/%m/%Y'),
+            abonnement.date_fin.strftime('%d/%m/%Y'),
+            str(abonnement.duree_mois),
+            abonnement.get_statut_display(),
+            abonnement.description or ''
+        ])
+    
+    return response
+
 def export_subscriptions_pdf(request):
-    """Exporter la liste des abonnements en PDF"""
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
     

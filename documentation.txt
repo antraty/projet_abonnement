@@ -1,0 +1,18 @@
+Dossier config
+	projet principal
+
+Dossier static
+	pas encore utiliser
+
+Dossier subscriptions
+	premiere application
+	admin.py: autorisation administrateur
+	forms.py: Definition des forums
+	models.py: Definition des Class Client,Subscription, et Renouvellement
+	notifications: mbola tsy haiko
+	urls.py: Liens et chemin du site
+	utils.py: fonction independants des requetes HTML, réutilisable
+	views.py: fonction dépendantes des requetes HTML,principalement CRUD
+
+Dossier templates (contient les pages HTML)
+	base.html: page parent dont les autres hérite

@@ -4,7 +4,7 @@
 
 {% block content %}
 <div style="max-width: 500px; margin: 0 auto; text-align: center;">
-    <h2 style="color: #e74c3c;">🗑️ Supprimer le Client</h2>
+    <h2 style="color: #e74c3c;">Supprimer le Client</h2>
     
     <div class="table-container" style="background: #f8d7da; border-color: #f5c6cb;">
         <div style="padding: 2rem;">
@@ -28,10 +28,10 @@
             <form method="post" style="display: flex; gap: 1rem; justify-content: center;">
                 {% csrf_token %}
                 <button type="submit" class="btn" style="background: #e74c3c; border-color: #e74c3c;">
-                    🗑️ Oui, supprimer
+                    Oui, supprimer
                 </button>
                 <a href="{% url 'subscriptions:client_list' %}" class="btn btn-secondary">
-                    ❌ Annuler
+                    Annuler
                 </a>
             </form>
         </div>

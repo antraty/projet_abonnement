@@ -3,28 +3,28 @@
 {% block title %}Tableau de Bord - Gestion d'Abonnements{% endblock %}
 
 {% block content %}
-<h2>📊 Tableau de Bord</h2>
+<h2>Tableau de Bord</h2>
 
 <!-- Statistiques principales -->
 <div class="stats">
     <div class="stat-card">
         <span class="stat-number">{{ total_clients }}</span>
-        <div>👥 Clients Totaux</div>
+        <div>Clients Totaux</div>
         <small style="color: #27ae60;">+{{ advanced_stats.clients_ce_mois }} ce mois</small>
     </div>
     <div class="stat-card">
         <span class="stat-number">{{ total_abonnements }}</span>
-        <div>📋 Abonnements Totaux</div>
+        <div>Abonnements Totaux</div>
         <small style="color: #27ae60;">+{{ advanced_stats.abonnements_ce_mois }} ce mois</small>
     </div>
     <div class="stat-card">
         <span class="stat-number">{{ abonnements_actifs }}</span>
-        <div>✅ Abonnements Actifs</div>
+        <div>Abonnements Actifs</div>
         <small>{{ advanced_stats.repartition_statuts.actif|default:0 }} actifs</small>
     </div>
     <div class="stat-card">
         <span class="stat-number">{{ advanced_stats.chiffre_affaires }}€</span>
-        <div>💰 Chiffre d'Affaires</div>
+        <div>Chiffre d'Affaires</div>
         <small>Total cumulé</small>
     </div>
 </div>
@@ -32,7 +32,7 @@
 <!-- Graphiques -->
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
     <div class="table-container">
-        <h3>📈 Répartition des Clients</h3>
+        <h3>Répartition des Clients</h3>
         <div style="text-align: center; padding: 1rem;">
             <img src="data:image/png;base64,{{ clients_chart }}" alt="Répartition des clients" style="max-width: 100%; height: auto;">
         </div>
@@ -43,7 +43,7 @@
     </div>
     
     <div class="table-container">
-        <h3>📊 Répartition des Abonnements</h3>
+        <h3>Répartition des Abonnements</h3>
         <div style="text-align: center; padding: 1rem;">
             <img src="data:image/png;base64,{{ subscriptions_chart }}" alt="Répartition des abonnements" style="max-width: 100%; height: auto;">
         </div>
@@ -63,7 +63,7 @@
     <div>
         {% if abonnements_expirant %}
         <div class="alert">
-            <h3>⚠️ Abonnements Expirant Bientôt</h3>
+            <h3>Abonnements Expirant Bientôt</h3>
             <ul>
                 {% for abonnement in abonnements_expirant %}
                 <li>
@@ -78,7 +78,7 @@
 
         <!-- Statistiques rapides -->
         <div class="table-container">
-            <h3>🚀 Aperçu Rapide</h3>
+            <h3>Aperçu Rapide</h3>
             <div style="padding: 1rem;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div style="text-align: center;">
@@ -113,7 +113,7 @@
     <!-- Derniers abonnements -->
     <div>
         <div class="table-container">
-            <h3>📋 Derniers Abonnements</h3>
+            <h3>Derniers Abonnements</h3>
             {% if derniers_abonnements %}
             <table>
                 <thead>
@@ -148,20 +148,20 @@
         
         <!-- Actions rapides -->
         <div class="table-container">
-            <h3>⚡ Actions Rapides</h3>
+            <h3>Actions Rapides</h3>
             <div style="padding: 1.5rem; text-align: center;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <a href="{% url 'subscriptions:client_create' %}" class="btn" style="font-size: 0.9rem;">
-                        👥 Nouveau Client
+                        Nouveau Client
                     </a>
                     <a href="{% url 'subscriptions:subscription_create' %}" class="btn" style="font-size: 0.9rem;">
-                        📋 Nouvel Abonnement
+                        Nouvel Abonnement
                     </a>
                     <a href="{% url 'subscriptions:client_list' %}" class="btn btn-secondary" style="font-size: 0.9rem;">
-                        📊 Voir Clients
+                        Voir Clients
                     </a>
                     <a href="{% url 'subscriptions:subscription_list' %}" class="btn btn-secondary" style="font-size: 0.9rem;">
-                        📈 Voir Abonnements
+                        Voir Abonnements
                     </a>
                 </div>
             </div>

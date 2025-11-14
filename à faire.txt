@@ -2,3 +2,4 @@
 -rehefa expiré dia tokony miova automatique "suspendu" ny statut
 -apina bouton relance akaikin'ny action: automatiser-na ny statu actif rehefa vita ny relance
 -apina système de paiement
+-front end

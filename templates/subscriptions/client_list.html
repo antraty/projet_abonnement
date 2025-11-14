@@ -3,7 +3,7 @@
 {% block title %}Liste des Clients - Gestion d'Abonnements{% endblock %}
 
 {% block content %}
-<h2>👥 Liste des Clients</h2>
+<h2>Liste des Clients</h2>
 
 <!-- Barre de recherche et filtres -->
 <div class="table-container" style="margin-bottom: 2rem; padding: 1.5rem;">
@@ -11,7 +11,7 @@
         <!-- Recherche -->
         <div>
             <label for="search" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">
-                🔍 Rechercher
+                Rechercher
             </label>
             <input 
                 type="text" 
@@ -26,7 +26,7 @@
         <!-- Filtre par type -->
         <div>
             <label for="type-filter" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">
-                📊 Filtrer par type
+                Filtrer par type
             </label>
             <select name="type" id="type-filter" class="form-control">
                 <option value="">Tous les types</option>
@@ -38,11 +38,11 @@
         <!-- Boutons -->
         <div>
             <button type="submit" class="btn" style="margin-bottom: 0;">
-                🔎 Appliquer
+                Appliquer
             </button>
             {% if query or type_filter %}
             <a href="{% url 'subscriptions:client_list' %}" class="btn btn-secondary" style="margin-top: 0.5rem; display: block;">
-                🗑️ Effacer
+                Effacer
             </a>
             {% endif %}
         </div>
@@ -75,11 +75,6 @@
             <tr>
                 <td>
                     <strong>{{ client.nom }}</strong>
-                    {% if client.type_client == 'entreprise' %}
-                    <br><small>🏢 Entreprise</small>
-                    {% else %}
-                    <br><small>👤 Personnel</small>
-                    {% endif %}
                 </td>
                 <td>{{ client.email }}</td>
                 <td>{{ client.telephone|default:"-" }}</td>
@@ -95,12 +90,12 @@
                         <a href="{% url 'subscriptions:client_edit' client.pk %}" 
                            class="btn" 
                            style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #17a2b8;">
-                            ✏️
+                            Edit
                         </a>
                         <a href="{% url 'subscriptions:client_delete' client.pk %}" 
                            class="btn btn-secondary" 
                            style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #e74c3c;">
-                            🗑️
+                            Delete
                         </a>
                     </div>
                 </td>
@@ -112,10 +107,10 @@
 {% else %}
 <div style="text-align: center; padding: 3rem; color: #666;">
     {% if query or type_filter %}
-    <p style="font-size: 1.2rem; margin-bottom: 1rem;">🔍 Aucun client trouvé</p>
+    <p style="font-size: 1.2rem; margin-bottom: 1rem;">Aucun client trouvé</p>
     <p>Aucun client ne correspond à vos critères de recherche.</p>
     {% else %}
-    <p style="font-size: 1.2rem; margin-bottom: 1rem;">📭 Aucun client pour le moment</p>
+    <p style="font-size: 1.2rem; margin-bottom: 1rem;">Aucun client pour le moment</p>
     <p>Commencez par ajouter votre premier client !</p>
     {% endif %}
 </div>
@@ -124,14 +119,14 @@
 <div style="margin-top: 2rem; text-align: center;">
     <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem;">
         <a href="{% url 'subscriptions:export_clients_pdf' %}" class="btn" style="background: #e74c3c;">
-            📄 Exporter en PDF
+            Exporter en PDF
         </a>
         <a href="{% url 'subscriptions:export_clients_csv' %}" class="btn" style="background: #27ae60;">
-            📊 Exporter en CSV
+            Exporter en CSV
         </a>
     </div>
     <a href="{% url 'subscriptions:client_create' %}" class="btn">
-        ➕ Ajouter un Client
+        Ajouter un Client
     </a>
 </div>
 
