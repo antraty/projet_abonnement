@@ -1,0 +1,40 @@
+{% extends 'subscriptions/base.html' %}
+
+{% block title %}Supprimer {{ client.nom }} - Gestion d'Abonnements{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto; text-align: center;">
+    <h2 style="color: #e74c3c;">🗑️ Supprimer le Client</h2>
+    
+    <div class="table-container" style="background: #f8d7da; border-color: #f5c6cb;">
+        <div style="padding: 2rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+            <h3 style="color: #721c24; margin-bottom: 1rem;">Êtes-vous sûr ?</h3>
+            <p style="color: #721c24; margin-bottom: 1.5rem;">
+                Vous êtes sur le point de supprimer le client <strong>"{{ client.nom }}"</strong>.
+                <br>
+                Cette action est irréversible !
+            </p>
+            
+            {% if client.subscription_set.exists %}
+            <div style="background: #fff3cd; color: #856404; padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
+                <strong>Attention !</strong><br>
+                Ce client a {{ client.subscription_set.count }} abonnement(s) associé(s).
+                <br>
+                Tous ses abonnements seront également supprimés.
+            </div>
+            {% endif %}
+            
+            <form method="post" style="display: flex; gap: 1rem; justify-content: center;">
+                {% csrf_token %}
+                <button type="submit" class="btn" style="background: #e74c3c; border-color: #e74c3c;">
+                    🗑️ Oui, supprimer
+                </button>
+                <a href="{% url 'subscriptions:client_list' %}" class="btn btn-secondary">
+                    ❌ Annuler
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

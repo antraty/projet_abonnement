@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestion d'Abonnements{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="header">
+        <h1>Gestion d'Abonnements</h1>
+        <div class="nav">
+            <a href="{% url 'subscriptions:dashboard' %}">📊 Tableau de Bord</a>
+            <a href="{% url 'subscriptions:client_list' %}">👥 Clients</a>
+            <a href="{% url 'subscriptions:subscription_list' %}">📋 Abonnements</a>
+            <a href="/admin/">⚙️ Administration</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>
