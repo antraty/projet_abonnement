@@ -53,7 +53,7 @@
 {% if clients %}
 <div class="table-container">
     <div style="padding: 1rem; background: #f8f9fa; border-bottom: 1px solid #dee2e6;">
-        <strong>{{ clients.count }}</strong> client(s) trouvé(s)
+        <strong>{{ clients.paginator.count }}</strong> client(s) trouvé(s)
         {% if query %} pour "{{ query }}"{% endif %}
         {% if type_filter %} | Type: {{ type_filter }}{% endif %}
     </div>
@@ -103,6 +103,30 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- Pagination -->
+    <div style="padding: 1rem; display:flex; justify-content:center; gap: 0.5rem; align-items:center; margin-top: 1rem;">
+        {% if clients.has_previous %}
+            <a href="?page={{ clients.previous_page_number }}{% if params %}&{{ params }}{% endif %}" class="btn btn-secondary">Précédent</a>
+        {% else %}
+            <span class="btn btn-secondary" style="opacity:0.5; cursor:default;">Précédent</span>
+        {% endif %}
+
+        {% for i in clients.paginator.page_range %}
+            {% if clients.number == i %}
+                <span class="btn" style="font-weight:700;">{{ i }}</span>
+            {% else %}
+                <a href="?page={{ i }}{% if params %}&{{ params }}{% endif %}" class="btn btn-secondary">{{ i }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if clients.has_next %}
+            <a href="?page={{ clients.next_page_number }}{% if params %}&{{ params }}{% endif %}" class="btn btn-secondary">Suivant</a>
+        {% else %}
+            <span class="btn btn-secondary" style="opacity:0.5; cursor:default;">Suivant</span>
+        {% endif %}
+    </div>
+
 </div>
 {% else %}
 <div style="text-align: center; padding: 3rem; color: #666;">

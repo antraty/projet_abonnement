@@ -9,11 +9,10 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import csv
 import calendar
 from datetime import date
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
-
 from .models import Subscription, Renewal
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
@@ -115,12 +114,16 @@ def subscription_renew(request, pk):
 
 @login_required
 def client_list(request):
-    clients = Client.objects.all().order_by('nom')
+    """
+    Liste paginée des clients avec recherche et filtre par type.
+    Passe 'clients' comme Page object et 'params' (querystring sans page) au template.
+    """
+    clients_qs = Client.objects.all().order_by('nom')
     
     # Recherche et filtre
     query = request.GET.get('q')
     if query:
-        clients = clients.filter(
+        clients_qs = clients_qs.filter(
             Q(nom__icontains=query) |
             Q(email__icontains=query) |
             Q(nom_entreprise__icontains=query) |
@@ -128,10 +131,10 @@ def client_list(request):
         )
     type_filter = request.GET.get('type')
     if type_filter:
-        clients = clients.filter(type_client=type_filter)
+        clients_qs = clients_qs.filter(type_client=type_filter)
     
-    # Pagination (optionnelle, garde si nécessaire)
-    paginator = Paginator(clients, 20)
+    # Pagination
+    paginator = Paginator(clients_qs, 20)  # 20 éléments par page
     page = request.GET.get('page')
     try:
         clients_page = paginator.page(page)
@@ -140,13 +143,19 @@ def client_list(request):
     except EmptyPage:
         clients_page = paginator.page(paginator.num_pages)
     
+    # Préserver les autres paramètres GET (sauf page) pour construire les liens de pagination
+    params = request.GET.copy()
+    if 'page' in params:
+        params.pop('page')
+    params = params.urlencode()
+    
     context = {
         'clients': clients_page,
         'query': query or '',
         'type_filter': type_filter or '',
+        'params': params,
     }
     return render(request, 'subscriptions/client_list.html', context)
-
 
 @login_required
 def client_create(request):
@@ -285,12 +294,16 @@ def export_clients_pdf(request):
 
 @login_required
 def subscription_list(request):
-    abonnements = Subscription.objects.all().order_by('-date_creation')
+    """
+    Liste paginée des abonnements avec recherche et filtre par statut.
+    Passe 'abonnements' comme Page object et 'params' (querystring sans page) au template.
+    """
+    abonnements_qs = Subscription.objects.all().order_by('-date_creation')
     
     # Recherche et filtre
     query = request.GET.get('q')
     if query:
-        abonnements = abonnements.filter(
+        abonnements_qs = abonnements_qs.filter(
             Q(nom_abonnement__icontains=query) |
             Q(client__nom__icontains=query) |
             Q(client__nom_entreprise__icontains=query) |
@@ -298,10 +311,10 @@ def subscription_list(request):
         )
     statut_filter = request.GET.get('statut')
     if statut_filter:
-        abonnements = abonnements.filter(statut=statut_filter)
+        abonnements_qs = abonnements_qs.filter(statut=statut_filter)
     
     # Pagination
-    paginator = Paginator(abonnements, 20)
+    paginator = Paginator(abonnements_qs, 20)  # 20 éléments par page
     page = request.GET.get('page')
     try:
         abonnements_page = paginator.page(page)
@@ -309,14 +322,20 @@ def subscription_list(request):
         abonnements_page = paginator.page(1)
     except EmptyPage:
         abonnements_page = paginator.page(paginator.num_pages)
-
+    
+    # Préserver les autres paramètres GET (sauf page)
+    params = request.GET.copy()
+    if 'page' in params:
+        params.pop('page')
+    params = params.urlencode()
+    
     context = {
         'abonnements': abonnements_page,
         'query': query or '',
         'statut_filter': statut_filter or '',
+        'params': params,
     }
     return render(request, 'subscriptions/subscription_list.html', context)
-
 
 @login_required
 def subscription_create(request):
