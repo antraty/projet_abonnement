@@ -1,4 +1,3 @@
-
 from pathlib import Path
 import os
 
@@ -138,3 +137,16 @@ SERVER_EMAIL = 'johanharirojo@gmail.com'
 
 # Pour les tests en développement, vous pouvez utiliser la console :
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# -------------------
+# Paramètres d'authentification / redirections
+# -------------------
+# URL de connexion (décorateur @login_required redirigera ici)
+LOGIN_URL = 'subscriptions:login'
+# Après connexion, redirige vers le dashboard
+LOGIN_REDIRECT_URL = 'subscriptions:dashboard'
+# Après déconnexion, redirige vers la page de connexion
+LOGOUT_REDIRECT_URL = 'subscriptions:login'
+
+# Remarque/ sécurité : il est fortement recommandé d'utiliser des variables d'environnement
+# pour EMAIL_HOST_USER et EMAIL_HOST_PASSWORD en production (ne pas committer de secrets).

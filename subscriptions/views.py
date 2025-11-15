@@ -1,11 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Q
 from .models import Client, Subscription, Renewal
 from django.utils import timezone
 from datetime import timedelta
 from .forms import ClientForm, SubscriptionForm
-from django.shortcuts import render, redirect, get_object_or_404
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import csv
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
@@ -17,8 +17,9 @@ from reportlab.lib.units import inch
 from io import BytesIO
 from .utils import get_advanced_stats, generate_clients_chart, generate_subscriptions_chart
 from .notifications import send_new_subscription_notification
+from django.contrib.auth.decorators import login_required
 
-
+@login_required
 def dashboard(request):
     total_clients = Client.objects.count()
     total_abonnements = Subscription.objects.count()
@@ -52,6 +53,7 @@ def dashboard(request):
     return render(request, 'subscriptions/dashboard.html', context)
 
 
+@login_required
 def client_list(request):
     clients = Client.objects.all().order_by('nom')
     
@@ -68,14 +70,25 @@ def client_list(request):
     if type_filter:
         clients = clients.filter(type_client=type_filter)
     
+    # Pagination (optionnelle, garde si nécessaire)
+    paginator = Paginator(clients, 20)
+    page = request.GET.get('page')
+    try:
+        clients_page = paginator.page(page)
+    except PageNotAnInteger:
+        clients_page = paginator.page(1)
+    except EmptyPage:
+        clients_page = paginator.page(paginator.num_pages)
+    
     context = {
-        'clients': clients,
+        'clients': clients_page,
         'query': query or '',
         'type_filter': type_filter or '',
     }
     return render(request, 'subscriptions/client_list.html', context)
 
 
+@login_required
 def client_create(request):
     if request.method == 'POST':
         form = ClientForm(request.POST)
@@ -89,6 +102,7 @@ def client_create(request):
     return render(request, 'subscriptions/client_form.html', {'form': form})
 
 
+@login_required
 def client_edit(request, pk):
     client = get_object_or_404(Client, pk=pk)
     
@@ -108,6 +122,7 @@ def client_edit(request, pk):
     })
 
 
+@login_required
 def export_clients_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="clients.csv"'
@@ -130,6 +145,7 @@ def export_clients_csv(request):
     return response
 
 
+@login_required
 def client_delete(request, pk):
     client = get_object_or_404(Client, pk=pk)
     
@@ -141,6 +157,7 @@ def client_delete(request, pk):
     return render(request, 'subscriptions/client_confirm_delete.html', {'client': client})
 
 
+@login_required
 def export_clients_pdf(request):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
@@ -206,6 +223,7 @@ def export_clients_pdf(request):
 
 
 
+@login_required
 def subscription_list(request):
     abonnements = Subscription.objects.all().order_by('-date_creation')
     
@@ -222,14 +240,25 @@ def subscription_list(request):
     if statut_filter:
         abonnements = abonnements.filter(statut=statut_filter)
     
+    # Pagination
+    paginator = Paginator(abonnements, 20)
+    page = request.GET.get('page')
+    try:
+        abonnements_page = paginator.page(page)
+    except PageNotAnInteger:
+        abonnements_page = paginator.page(1)
+    except EmptyPage:
+        abonnements_page = paginator.page(paginator.num_pages)
+
     context = {
-        'abonnements': abonnements,
+        'abonnements': abonnements_page,
         'query': query or '',
         'statut_filter': statut_filter or '',
     }
     return render(request, 'subscriptions/subscription_list.html', context)
 
 
+@login_required
 def subscription_create(request):
     if request.method == 'POST':
         form = SubscriptionForm(request.POST)
@@ -247,6 +276,7 @@ def subscription_create(request):
     return render(request, 'subscriptions/subscription_form.html', {'form': form})
 
 
+@login_required
 def subscription_edit(request, pk):
     abonnement = get_object_or_404(Subscription, pk=pk)
     
@@ -266,6 +296,7 @@ def subscription_edit(request, pk):
     })
 
 
+@login_required
 def subscription_delete(request, pk):
     abonnement = get_object_or_404(Subscription, pk=pk)
     
@@ -277,6 +308,7 @@ def subscription_delete(request, pk):
     return render(request, 'subscriptions/subscription_confirm_delete.html', {'abonnement': abonnement})
 
 
+@login_required
 def export_subscriptions_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="abonnements.csv"'
@@ -300,6 +332,7 @@ def export_subscriptions_csv(request):
     
     return response
 
+@login_required
 def export_subscriptions_pdf(request):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)

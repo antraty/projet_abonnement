@@ -1,0 +1,44 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Inscription</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Créer un compte</h1>
+    </div>
+
+    <div style="max-width:480px;margin:2rem auto;background:white;padding:2rem;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,0.08);">
+      <form method="post" action="{% url 'subscriptions:signup' %}">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div style="margin-bottom:1rem;">
+          {{ form.username.label_tag }}
+          {{ form.username }}
+          {{ form.username.errors }}
+        </div>
+        <div style="margin-bottom:1rem;">
+          {{ form.password1.label_tag }}
+          {{ form.password1 }}
+          {{ form.password1.errors }}
+        </div>
+        <div style="margin-bottom:1rem;">
+          {{ form.password2.label_tag }}
+          {{ form.password2 }}
+          {{ form.password2.errors }}
+        </div>
+
+        <button type="submit" class="btn">S'inscrire</button>
+      </form>
+
+      <p style="margin-top:1rem;">
+        <a href="{% url 'subscriptions:login' %}">Déjà inscrit ? Se connecter</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
