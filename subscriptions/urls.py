@@ -24,5 +24,6 @@ urlpatterns = [
     path('abonnements/<int:pk>/modifier/', views.subscription_edit, name='subscription_edit'),
     path('abonnements/<int:pk>/supprimer/', views.subscription_delete, name='subscription_delete'),
     path('abonnements/export/csv/', views.export_subscriptions_csv, name='export_subscriptions_csv'),
+    path('abonnements/<int:pk>/relancer/', views.subscription_renew, name='subscription_renew'),
     path('abonnements/export/pdf/', views.export_subscriptions_pdf, name='export_subscriptions_pdf'),
 ]

@@ -71,6 +71,7 @@
                 <th>Durée</th>
                 <th>Statut</th>
                 <th>Actions</th>
+                <th>Relance</th>
             </tr>
         </thead>
         <tbody>
@@ -117,6 +118,21 @@
                             Delete
                         </a>
                     </div>
+                </td>
+
+                <!-- Nouvelle colonne Relance -->
+                <td>
+                    <form method="post" action="{% url 'subscriptions:subscription_renew' abonnement.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button
+                            type="submit"
+                            class="btn btn-secondary"
+                            onclick="return confirm('Confirmer la relance de cet abonnement ?');"
+                            title="Relancer l'abonnement"
+                            style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #6c757d;">
+                            Relancer
+                        </button>
+                    </form>
                 </td>
             </tr>
             {% endfor %}

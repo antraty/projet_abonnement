@@ -7,6 +7,14 @@ from datetime import timedelta
 from .forms import ClientForm, SubscriptionForm
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import csv
+import calendar
+from datetime import date
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
+from .models import Subscription, Renewal
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, A4
@@ -52,6 +60,58 @@ def dashboard(request):
     
     return render(request, 'subscriptions/dashboard.html', context)
 
+def add_months(orig_date, months):
+    """
+    Retourne une date correspondant à orig_date + months mois.
+    Gère correctement le dernier jour des mois.
+    """
+    month = orig_date.month - 1 + months
+    year = orig_date.year + month // 12
+    month = month % 12 + 1
+    day = min(orig_date.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
+
+
+@login_required
+def subscription_renew(request, pk):
+    """
+    Relance (renouvelle) un abonnement :
+    - Prolonge date_fin de `duree_mois` (ou 1 mois si absent),
+    - Si date_fin < today, la prolongation part de today,
+    - Met le statut à 'actif',
+    - Crée un objet Renewal avec une note (et nouveau_prix égal au prix courant).
+    Exige une requête POST.
+    """
+    if request.method != 'POST':
+        messages.error(request, "Méthode non autorisée pour la relance.")
+        return redirect('subscriptions:subscription_list')
+
+    abonnement = get_object_or_404(Subscription, pk=pk)
+
+    months = abonnement.duree_mois or 1
+
+    today = date.today()
+    base_date = abonnement.date_fin
+    if base_date < today:
+        base_date = today
+
+    new_end = add_months(base_date, months)
+
+    # Mise à jour de l'abonnement
+    abonnement.date_fin = new_end
+    abonnement.statut = 'actif'
+    abonnement.save(update_fields=['date_fin', 'statut'])
+
+    # Création du renouvellement
+    Renewal.objects.create(
+        abonnement=abonnement,
+        nouveau_prix=abonnement.prix,
+        duree_extension_mois=months,
+        notes=f"Relance effectuée par {request.user.username}"
+    )
+
+    messages.success(request, f"Abonnement relancé jusqu'au {new_end.strftime('%d/%m/%Y')} et statut réactivé.")
+    return redirect('subscriptions:subscription_list')
 
 @login_required
 def client_list(request):
