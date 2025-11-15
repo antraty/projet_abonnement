@@ -51,7 +51,19 @@ class Subscription(models.Model):
         return f"{self.nom_abonnement} - {self.client.nom}"
     
     def est_expire(self):
-        return self.date_fin < timezone.now().date()
+        """
+        Retourne True si la date_fin est passée. Si l'abonnement est expiré,
+        cette méthode met également à jour le champ `statut` en 'suspendu'
+        (sauf si le statut est déjà 'suspendu') et sauvegarde l'objet.
+        """
+        today = timezone.now().date()
+        is_expired = self.date_fin < today
+        if is_expired and self.statut != 'suspendu':
+            # Mettre à jour le statut en 'suspendu'
+            self.statut = 'suspendu'
+            # Sauvegarde ciblée pour éviter effets de bord
+            self.save(update_fields=['statut'])
+        return is_expired
     
     class Meta:
         verbose_name = "Abonnement"
