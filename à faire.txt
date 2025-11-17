@@ -1,4 +1,4 @@
 à ajouter:
--rehefa expiré dia tokony miova automatique "suspendu" ny statut
 -apina système de paiement
 -front end
+-systeme de notification par mail

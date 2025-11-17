@@ -65,10 +65,11 @@ def subscription_renew(request, pk):
     if request.method != 'POST':
         messages.error(request, "Méthode non autorisée pour la relance.")
         return redirect('subscriptions:subscription_list')
-
+    
+    duree_mois_relance = int(request.POST.get("duree_mois_relance", 1))
     abonnement = get_object_or_404(Subscription, pk=pk)
 
-    prolongation = 1
+    prolongation = duree_mois_relance
     abonnement.duree_mois += prolongation
 
     # Réactiver l'abonnement
