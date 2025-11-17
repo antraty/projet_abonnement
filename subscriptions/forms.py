@@ -44,24 +44,18 @@ class ClientForm(forms.ModelForm):
 class SubscriptionForm(forms.ModelForm):
     class Meta:
         model = Subscription
-        fields = ['client', 'nom_abonnement', 'description', 'prix', 'date_debut', 'duree_mois', 'statut']
+        fields = ['client', 'nom_abonnement', 'description', 'date_debut', 'duree_mois', 'statut']
         widgets = {
             'client': forms.Select(attrs={
                 'class': 'form-control'
             }),
-            'nom_abonnement': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Nom de l\'abonnement'
+            'nom_abonnement': forms.Select(attrs={
+                'class': 'form-control'
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
                 'placeholder': 'Description de l\'abonnement',
                 'rows': 3
-            }),
-            'prix': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': '0.00',
-                'step': '0.01'
             }),
             'date_debut': forms.DateInput(attrs={
                 'class': 'form-control',

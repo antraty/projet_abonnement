@@ -30,7 +30,9 @@
 </div>
 
 <!-- Graphiques -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    
+    <!-- Colonne 1 : Clients -->
     <div class="table-container">
         <h3>Répartition des Clients</h3>
         <div style="text-align: center; padding: 1rem;">
@@ -42,6 +44,7 @@
         </div>
     </div>
     
+    <!-- Colonne 2 : Abonnements -->
     <div class="table-container">
         <h3>Répartition des Abonnements</h3>
         <div style="text-align: center; padding: 1rem;">
@@ -54,6 +57,20 @@
             <strong>Expirés:</strong> {{ advanced_stats.repartition_statuts.expire }}
         </div>
     </div>
+    
+    <!-- Colonne 3 : Types d'abonnement -->
+    <div class="table-container">
+        <h3>Répartition par Type d'Abonnement</h3>
+        <div style="text-align: center; padding: 1rem;">
+            <img src="data:image/png;base64,{{ abonnements_chart }}" alt="Répartition par type" style="max-width: 100%; height: auto;">
+        </div>
+        <div style="padding: 1rem; background: #f8f9fa; text-align: center; font-size: 0.9rem;">
+            <strong>Classique:</strong> {{ advanced_stats.repartition_types.classique }} | 
+            <strong>Premium:</strong> {{ advanced_stats.repartition_types.premium }} | 
+            <strong>VIP:</strong> {{ advanced_stats.repartition_types.vip }}
+        </div>
+    </div>
+
 </div>
 
 <!-- Alertes et dernières activités -->

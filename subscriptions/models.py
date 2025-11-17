@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import date
+from django.core.validators import MinValueValidator
 
 class Client(models.Model):
     TYPE_CHOICES = [
@@ -37,21 +38,32 @@ class Subscription(models.Model):
         ('suspendu', 'Suspendu'),
         ('expire', 'Expiré'),
     ]
+    ABONNEMENT_CHOICES = [
+        ('classique', 'Classique'),
+        ('premium', 'Premium'),
+        ('vip', 'VIP'),
+    ]
+    TARIFS = {
+        'classique': 10.0,  # 10€ par mois
+        'premium': 20.0,    # 20€ par mois
+        'vip': 50.0,        # 50€ par mois
+    }
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     
-    nom_abonnement = models.CharField(max_length=100)
+    nom_abonnement = models.CharField(max_length=20, choices=ABONNEMENT_CHOICES, default='classique')
     description = models.TextField(blank=True)
-    prix = models.DecimalField(max_digits=10, decimal_places=2)
+    prix = models.DecimalField(max_digits=10, decimal_places=2,validators=[MinValueValidator(0)])
     date_debut = models.DateField()
     date_fin = models.DateField()
     duree_mois = models.IntegerField(help_text="Durée en mois")
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='actif')
     date_creation = models.DateTimeField(auto_now_add=True)
     
-
-
-
     def save(self, *args, **kwargs):
+        # Calcul automatique du prix
+        if self.nom_abonnement in self.TARIFS and self.duree_mois:
+            self.prix = self.TARIFS[self.nom_abonnement] * self.duree_mois
+
         if self.date_debut and self.duree_mois:
             year = self.date_debut.year + (self.date_debut.month + self.duree_mois - 1) // 12
             month = (self.date_debut.month + self.duree_mois - 1) % 12 + 1

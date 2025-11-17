@@ -22,7 +22,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.units import inch
 from io import BytesIO
-from .utils import get_advanced_stats, generate_clients_chart, generate_subscriptions_chart
+from .utils import get_advanced_stats, generate_clients_chart, generate_subscriptions_chart, generate_types_chart
 from .notifications import send_new_subscription_notification
 from django.contrib.auth.decorators import login_required
 
@@ -45,6 +45,7 @@ def dashboard(request):
     # Générer les graphiques
     clients_chart = generate_clients_chart()
     subscriptions_chart = generate_subscriptions_chart()
+    abonnements_chart = generate_types_chart()
     
     context = {
         'total_clients': total_clients,
@@ -55,6 +56,7 @@ def dashboard(request):
         'advanced_stats': advanced_stats,
         'clients_chart': clients_chart,
         'subscriptions_chart': subscriptions_chart,
+        'abonnements_chart': abonnements_chart,
     }
     
     return render(request, 'subscriptions/dashboard.html', context)
