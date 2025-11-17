@@ -55,7 +55,7 @@
 {% if abonnements %}
 <div class="table-container">
     <div style="padding: 1rem; background: #f8f9fa; border-bottom: 1px solid #dee2e6;">
-        <strong>{{ abonnements.count }}</strong> abonnement(s) trouvé(s)
+        <strong>{{ abonnements.paginator.count }}</strong> abonnement(s) trouvé(s)
         {% if query %} pour "{{ query }}"{% endif %}
         {% if statut_filter %} | Statut: {{ statut_filter }}{% endif %}
     </div>
@@ -71,6 +71,7 @@
                 <th>Durée</th>
                 <th>Statut</th>
                 <th>Actions</th>
+                <th>Relance</th>
             </tr>
         </thead>
         <tbody>
@@ -118,10 +119,49 @@
                         </a>
                     </div>
                 </td>
+
+                <!-- Colonne Relance -->
+                <td>
+                    <form method="post" action="{% url 'subscriptions:subscription_renew' abonnement.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button
+                            type="submit"
+                            class="btn btn-secondary"
+                            onclick="return confirm('Confirmer la relance de cet abonnement ?');"
+                            title="Relancer l'abonnement"
+                            style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #6c757d;">
+                            Relancer
+                        </button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- Pagination -->
+    <div style="padding: 1rem; display:flex; justify-content:center; gap: 0.5rem; align-items:center; margin-top: 1rem;">
+        {% if abonnements.has_previous %}
+            <a href="?page={{ abonnements.previous_page_number }}{% if params %}&{{ params }}{% endif %}" class="btn btn-secondary">Précédent</a>
+        {% else %}
+            <span class="btn btn-secondary" style="opacity:0.5; cursor:default;">Précédent</span>
+        {% endif %}
+
+        {% for i in abonnements.paginator.page_range %}
+            {% if abonnements.number == i %}
+                <span class="btn" style="font-weight:700;">{{ i }}</span>
+            {% else %}
+                <a href="?page={{ i }}{% if params %}&{{ params }}{% endif %}" class="btn btn-secondary">{{ i }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if abonnements.has_next %}
+            <a href="?page={{ abonnements.next_page_number }}{% if params %}&{{ params }}{% endif %}" class="btn btn-secondary">Suivant</a>
+        {% else %}
+            <span class="btn btn-secondary" style="opacity:0.5; cursor:default;">Suivant</span>
+        {% endif %}
+    </div>
+
 </div>
 {% else %}
 <div style="text-align: center; padding: 3rem; color: #666;">

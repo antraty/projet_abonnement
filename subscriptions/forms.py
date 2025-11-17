@@ -44,7 +44,7 @@ class ClientForm(forms.ModelForm):
 class SubscriptionForm(forms.ModelForm):
     class Meta:
         model = Subscription
-        fields = ['client', 'nom_abonnement', 'description', 'prix', 'date_debut', 'date_fin', 'duree_mois', 'statut']
+        fields = ['client', 'nom_abonnement', 'description', 'prix', 'date_debut', 'duree_mois', 'statut']
         widgets = {
             'client': forms.Select(attrs={
                 'class': 'form-control'
@@ -64,10 +64,6 @@ class SubscriptionForm(forms.ModelForm):
                 'step': '0.01'
             }),
             'date_debut': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date'
-            }),
-            'date_fin': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date'
             }),

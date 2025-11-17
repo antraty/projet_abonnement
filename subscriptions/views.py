@@ -1,12 +1,19 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Q
 from .models import Client, Subscription, Renewal
 from django.utils import timezone
 from datetime import timedelta
 from .forms import ClientForm, SubscriptionForm
-from django.shortcuts import render, redirect, get_object_or_404
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import csv
+import calendar
+from datetime import date
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from .models import Subscription, Renewal
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, A4
@@ -17,8 +24,9 @@ from reportlab.lib.units import inch
 from io import BytesIO
 from .utils import get_advanced_stats, generate_clients_chart, generate_subscriptions_chart
 from .notifications import send_new_subscription_notification
+from django.contrib.auth.decorators import login_required
 
-
+@login_required
 def dashboard(request):
     total_clients = Client.objects.count()
     total_abonnements = Subscription.objects.count()
@@ -51,14 +59,42 @@ def dashboard(request):
     
     return render(request, 'subscriptions/dashboard.html', context)
 
+def subscription_renew(request, pk):
+    if request.method != 'POST':
+        messages.error(request, "Méthode non autorisée pour la relance.")
+        return redirect('subscriptions:subscription_list')
 
+    abonnement = get_object_or_404(Subscription, pk=pk)
+
+    prolongation = 1
+    abonnement.duree_mois += prolongation
+
+    # Réactiver l'abonnement
+    abonnement.statut = 'actif'
+    abonnement.save()  # date_fin sera recalculée automatiquement
+    
+    Renewal.objects.create(
+        abonnement=abonnement,
+        nouveau_prix=abonnement.prix,
+        duree_extension_mois=prolongation,
+        notes=f"Relance effectuée par {request.user.username}"
+    )
+
+    messages.success(request, f"Abonnement relancé jusqu'au {abonnement.date_fin.strftime('%d/%m/%Y')}")
+    return redirect('subscriptions:subscription_list')
+
+@login_required
 def client_list(request):
-    clients = Client.objects.all().order_by('nom')
+    """
+    Liste paginée des clients avec recherche et filtre par type.
+    Passe 'clients' comme Page object et 'params' (querystring sans page) au template.
+    """
+    clients_qs = Client.objects.all().order_by('nom')
     
     # Recherche et filtre
     query = request.GET.get('q')
     if query:
-        clients = clients.filter(
+        clients_qs = clients_qs.filter(
             Q(nom__icontains=query) |
             Q(email__icontains=query) |
             Q(nom_entreprise__icontains=query) |
@@ -66,16 +102,33 @@ def client_list(request):
         )
     type_filter = request.GET.get('type')
     if type_filter:
-        clients = clients.filter(type_client=type_filter)
+        clients_qs = clients_qs.filter(type_client=type_filter)
+    
+    # Pagination
+    paginator = Paginator(clients_qs, 20)  # 20 éléments par page
+    page = request.GET.get('page')
+    try:
+        clients_page = paginator.page(page)
+    except PageNotAnInteger:
+        clients_page = paginator.page(1)
+    except EmptyPage:
+        clients_page = paginator.page(paginator.num_pages)
+    
+    # Préserver les autres paramètres GET (sauf page) pour construire les liens de pagination
+    params = request.GET.copy()
+    if 'page' in params:
+        params.pop('page')
+    params = params.urlencode()
     
     context = {
-        'clients': clients,
+        'clients': clients_page,
         'query': query or '',
         'type_filter': type_filter or '',
+        'params': params,
     }
     return render(request, 'subscriptions/client_list.html', context)
 
-
+@login_required
 def client_create(request):
     if request.method == 'POST':
         form = ClientForm(request.POST)
@@ -89,6 +142,7 @@ def client_create(request):
     return render(request, 'subscriptions/client_form.html', {'form': form})
 
 
+@login_required
 def client_edit(request, pk):
     client = get_object_or_404(Client, pk=pk)
     
@@ -108,6 +162,7 @@ def client_edit(request, pk):
     })
 
 
+@login_required
 def export_clients_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="clients.csv"'
@@ -130,6 +185,7 @@ def export_clients_csv(request):
     return response
 
 
+@login_required
 def client_delete(request, pk):
     client = get_object_or_404(Client, pk=pk)
     
@@ -141,6 +197,7 @@ def client_delete(request, pk):
     return render(request, 'subscriptions/client_confirm_delete.html', {'client': client})
 
 
+@login_required
 def export_clients_pdf(request):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
@@ -206,13 +263,18 @@ def export_clients_pdf(request):
 
 
 
+@login_required
 def subscription_list(request):
-    abonnements = Subscription.objects.all().order_by('-date_creation')
+    """
+    Liste paginée des abonnements avec recherche et filtre par statut.
+    Passe 'abonnements' comme Page object et 'params' (querystring sans page) au template.
+    """
+    abonnements_qs = Subscription.objects.all().order_by('-date_creation')
     
     # Recherche et filtre
     query = request.GET.get('q')
     if query:
-        abonnements = abonnements.filter(
+        abonnements_qs = abonnements_qs.filter(
             Q(nom_abonnement__icontains=query) |
             Q(client__nom__icontains=query) |
             Q(client__nom_entreprise__icontains=query) |
@@ -220,16 +282,33 @@ def subscription_list(request):
         )
     statut_filter = request.GET.get('statut')
     if statut_filter:
-        abonnements = abonnements.filter(statut=statut_filter)
+        abonnements_qs = abonnements_qs.filter(statut=statut_filter)
+    
+    # Pagination
+    paginator = Paginator(abonnements_qs, 20)  # 20 éléments par page
+    page = request.GET.get('page')
+    try:
+        abonnements_page = paginator.page(page)
+    except PageNotAnInteger:
+        abonnements_page = paginator.page(1)
+    except EmptyPage:
+        abonnements_page = paginator.page(paginator.num_pages)
+    
+    # Préserver les autres paramètres GET (sauf page)
+    params = request.GET.copy()
+    if 'page' in params:
+        params.pop('page')
+    params = params.urlencode()
     
     context = {
-        'abonnements': abonnements,
+        'abonnements': abonnements_page,
         'query': query or '',
         'statut_filter': statut_filter or '',
+        'params': params,
     }
     return render(request, 'subscriptions/subscription_list.html', context)
 
-
+@login_required
 def subscription_create(request):
     if request.method == 'POST':
         form = SubscriptionForm(request.POST)
@@ -247,6 +326,7 @@ def subscription_create(request):
     return render(request, 'subscriptions/subscription_form.html', {'form': form})
 
 
+@login_required
 def subscription_edit(request, pk):
     abonnement = get_object_or_404(Subscription, pk=pk)
     
@@ -266,6 +346,7 @@ def subscription_edit(request, pk):
     })
 
 
+@login_required
 def subscription_delete(request, pk):
     abonnement = get_object_or_404(Subscription, pk=pk)
     
@@ -277,6 +358,7 @@ def subscription_delete(request, pk):
     return render(request, 'subscriptions/subscription_confirm_delete.html', {'abonnement': abonnement})
 
 
+@login_required
 def export_subscriptions_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="abonnements.csv"'
@@ -300,6 +382,7 @@ def export_subscriptions_csv(request):
     
     return response
 
+@login_required
 def export_subscriptions_pdf(request):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)

@@ -14,9 +14,20 @@
             <a href="{% url 'subscriptions:dashboard' %}">Tableau de Bord</a>
             <a href="{% url 'subscriptions:client_list' %}">Clients</a>
             <a href="{% url 'subscriptions:subscription_list' %}">Abonnements</a>
-            <a href="/admin/">Administration</a>
+            
+        <!-- Bienvenue + Logout à droite -->
+            <div class="user-info">
+                {% if user.is_authenticated %}
+                    <span class="welcome">Bienvenue, {{ user.username }}</span>
+                    <form action="{% url 'subscriptions:logout' %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">Déconnexion</button>
+                    </form>
+                {% endif %}
+            </div>
         </div>
     </div>
+
     
     <div class="container">
         {% block content %}
