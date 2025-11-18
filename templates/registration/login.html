@@ -1,0 +1,59 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Connexion</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="login-page">
+  <video class="bg-video" autoplay muted loop playsinline>
+    <source src="{% static 'videos/MHHM9797.mp4' %}" type="video/mp4">
+  </video>
+
+  <div class="app-content">
+  <div class="container">
+    <div class="header">
+      <h1>Se connecter</h1>
+    </div>
+    <div class="login-wrapper">
+
+      <div class="login-logo-panel">
+        <div class="login-logo-bg">
+          <img src="{% static 'img/logo-app.png.jpeg' %}" alt="Logo application" class="login-logo-img">
+        </div>
+      </div>
+
+      <div class="login-card">
+        {% if messages %}
+          <div class="messages">
+            {% for message in messages %}
+              <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'subscriptions:login' %}">
+          {% csrf_token %}
+          <div class="login-field">
+            <label for="id_username">Nom d'utilisateur</label>
+            <input type="text" name="username" autofocus required class="form-control" id="id_username">
+          </div>
+
+          <div class="login-field">
+            <label for="id_password">Mot de passe</label>
+            <input type="password" name="password" required class="form-control" id="id_password">
+          </div>
+
+          <button type="submit" class="btn">Se connecter</button>
+        </form>
+
+          <p class="login-signup-link">
+            <a href="{% url 'subscriptions:signup' %}">Créer un compte</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

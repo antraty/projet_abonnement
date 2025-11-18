@@ -1,0 +1,63 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Inscription</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="login-page">
+  <video class="bg-video" autoplay muted loop playsinline>
+    <source src="{% static 'videos/MHHM9797.mp4' %}" type="video/mp4">
+  </video>
+
+  <div class="app-content">
+  <div class="container">
+    <div class="header">
+      <h1>Créer un compte</h1>
+    </div>
+
+    <div class="login-wrapper">
+
+      <div class="login-logo-panel">
+        <div class="login-logo-bg">
+          <img src="{% static 'img/logo-app.png.jpeg' %}" alt="Logo application" class="login-logo-img">
+        </div>
+      </div>
+
+      <div class="login-card">
+        <form method="post" action="{% url 'subscriptions:signup' %}">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+
+          <div class="login-field">
+            {{ form.username.label_tag }}
+            {{ form.username }}
+            {{ form.username.errors }}
+          </div>
+
+          <div class="login-field">
+            {{ form.password1.label_tag }}
+            {{ form.password1 }}
+            {{ form.password1.errors }}
+          </div>
+
+          <div class="login-field">
+            {{ form.password2.label_tag }}
+            {{ form.password2 }}
+            {{ form.password2.errors }}
+          </div>
+
+          <button type="submit" class="btn">S'inscrire</button>
+        </form>
+
+        <p class="login-signup-link">
+          <a href="{% url 'subscriptions:login' %}">Déjà inscrit ? Se connecter</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+  </div>
+</body>
+</html>

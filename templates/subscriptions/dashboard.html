@@ -1,0 +1,189 @@
+{% extends 'subscriptions/base.html' %}
+
+{% block title %}Tableau de Bord - Gestion d'Abonnements{% endblock %}
+
+{% block content %}
+<p class="dashboard-welcome">Bienvenue, {{ user.username }}</p>
+
+<h2>Tableau de Bord</h2>
+
+<!-- Statistiques principales -->
+<div class="stats">
+    <div class="stat-card">
+        <span class="stat-number">{{ total_clients }}</span>
+        <div>Clients Totaux</div>
+        <small style="color: #27ae60;">+{{ advanced_stats.clients_ce_mois }} ce mois</small>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">{{ total_abonnements }}</span>
+        <div>Abonnements Totaux</div>
+        <small style="color: #27ae60;">+{{ advanced_stats.abonnements_ce_mois }} ce mois</small>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">{{ abonnements_actifs }}</span>
+        <div>Abonnements Actifs</div>
+        <small>{{ advanced_stats.repartition_statuts.actif|default:0 }} actifs</small>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">{{ advanced_stats.chiffre_affaires }}€</span>
+        <div>Chiffre d'Affaires</div>
+        <small>Total cumulé</small>
+    </div>
+</div>
+
+<!-- Graphiques -->
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    
+    <!-- Colonne 1 : Clients -->
+    <div class="table-container">
+        <h3><strong>Répartition des Clients</strong></h3>
+        <div style="text-align: center; padding: 1rem;">
+            <img src="data:image/png;base64,{{ clients_chart }}" alt="Répartition des clients" style="max-width: 100%; height: auto;">
+        </div>
+        <div style="padding: 1rem; background: #f8f9fa; text-align: center;">
+            <strong>Personnel:</strong> {{ advanced_stats.repartition_clients.personnel }} | 
+            <strong>Entreprise:</strong> {{ advanced_stats.repartition_clients.entreprise }}
+        </div>
+    </div>
+    
+    <!-- Colonne 2 : Abonnements -->
+    <div class="table-container">
+        <h3><strong>Répartition des Abonnements</strong></h3>
+        <div style="text-align: center; padding: 1rem;">
+            <img src="data:image/png;base64,{{ subscriptions_chart }}" alt="Répartition des abonnements" style="max-width: 100%; height: auto;">
+        </div>
+        <div style="padding: 1rem; background: #f8f9fa; text-align: center; font-size: 0.9rem;">
+            <strong>Actifs:</strong> {{ advanced_stats.repartition_statuts.actif }} | 
+            <strong>Inactifs:</strong> {{ advanced_stats.repartition_statuts.inactif }}<br>
+            <strong>Suspendus:</strong> {{ advanced_stats.repartition_statuts.suspendu }} | 
+            <strong>Expirés:</strong> {{ advanced_stats.repartition_statuts.expire }}
+        </div>
+    </div>
+    
+    <!-- Colonne 3 : Types d'abonnement -->
+    <div class="table-container">
+        <h3><strong>Répartition par Type d'Abonnement</strong></h3>
+        <div style="text-align: center; padding: 1rem;">
+            <img src="data:image/png;base64,{{ abonnements_chart }}" alt="Répartition par type" style="max-width: 100%; height: auto;">
+        </div>
+        <div style="padding: 1rem; background: #f8f9fa; text-align: center; font-size: 0.9rem;">
+            <strong>Classique:</strong> {{ advanced_stats.repartition_types.classique }} | 
+            <strong>Premium:</strong> {{ advanced_stats.repartition_types.premium }} | 
+            <strong>VIP:</strong> {{ advanced_stats.repartition_types.vip }}
+        </div>
+    </div>
+
+</div>
+
+<!-- Alertes et dernières activités -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+
+    <!-- Alertes -->
+    <div>
+        {% if abonnements_expirant %}
+        <div class="alert">
+            <h3>Abonnements Expirant Bientôt</h3>
+            <ul>
+                {% for abonnement in abonnements_expirant %}
+                <li>
+                    <strong>{{ abonnement.nom_abonnement }}</strong> - 
+                    {{ abonnement.client.nom }} 
+                    (Expire le {{ abonnement.date_fin }})
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Statistiques rapides -->
+        <div class="table-container quick-stats-card">
+            <h3>Aperçu Rapide</h3>
+            <div class="quick-stats">
+                <div class="quick-stat">
+                    <span class="quick-stat-number quick-stat-number--blue">
+                        {{ advanced_stats.repartition_clients.personnel }}
+                    </span>
+                    <span class="quick-stat-label">Clients Personnel</span>
+                </div>
+                <div class="quick-stat">
+                    <span class="quick-stat-number quick-stat-number--green">
+                        {{ advanced_stats.repartition_clients.entreprise }}
+                    </span>
+                    <span class="quick-stat-label">Clients Entreprise</span>
+                </div>
+                <div class="quick-stat">
+                    <span class="quick-stat-number quick-stat-number--red">
+                        {{ advanced_stats.repartition_statuts.expire }}
+                    </span>
+                    <span class="quick-stat-label">Abonnements Expirés</span>
+                </div>
+                <div class="quick-stat">
+                    <span class="quick-stat-number quick-stat-number--orange">
+                        {{ advanced_stats.repartition_statuts.suspendu }}
+                    </span>
+                    <span class="quick-stat-label">Abonnements Suspendus</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Derniers abonnements -->
+    <div>
+        <div class="table-container">
+            <h3><strong>Derniers Abonnements</strong></h3>
+            {% if derniers_abonnements %}
+            <table class="last-subscriptions-table">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Client</th>
+                        <th>Prix</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for abonnement in derniers_abonnements %}
+                    <tr>
+                        <td>{{ abonnement.nom_abonnement }}</td>
+                        <td>{{ abonnement.client.nom }}</td>
+                        <td>{{ abonnement.prix }} €</td>
+                        <td>
+                            <span class="badge badge-{{ abonnement.statut }}">
+                                {{ abonnement.get_statut_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="padding: 2rem; text-align: center; color: #666;">
+                Aucun abonnement pour le moment.
+            </p>
+            {% endif %}
+        </div>
+        
+        <!-- Actions rapides -->
+        <div class="table-container">
+            <h3><strong>Actions Rapides</strong></h3>
+            <div style="padding: 1.5rem; text-align: center;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <a href="{% url 'subscriptions:client_create' %}" class="btn" style="font-size: 0.9rem;">
+                        Nouveau Client
+                    </a>
+                    <a href="{% url 'subscriptions:subscription_create' %}" class="btn" style="font-size: 0.9rem;">
+                        Nouvel Abonnement
+                    </a>
+                    <a href="{% url 'subscriptions:client_list' %}" class="btn btn-secondary" style="font-size: 0.9rem;">
+                        Voir Clients
+                    </a>
+                    <a href="{% url 'subscriptions:subscription_list' %}" class="btn btn-secondary" style="font-size: 0.9rem;">
+                        Voir Abonnements
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
