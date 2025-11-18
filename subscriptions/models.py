@@ -44,9 +44,9 @@ class Subscription(models.Model):
         ('vip', 'VIP'),
     ]
     TARIFS = {
-        'classique': 10.0,  # 10€ par mois
-        'premium': 20.0,    # 20€ par mois
-        'vip': 50.0,        # 50€ par mois
+        'classique': 10000.0,
+        'premium': 20000.0,
+        'vip': 50000.0,
     }
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     

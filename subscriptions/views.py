@@ -370,7 +370,7 @@ def export_subscriptions_csv(request):
     response['Content-Disposition'] = 'attachment; filename="abonnements.csv"'
     
     writer = csv.writer(response)
-    writer.writerow(['Nom Abonnement', 'Client', 'Email Client', 'Prix (€)', 'Date Début', 'Date Fin', 'Durée (mois)', 'Statut', 'Description'])
+    writer.writerow(['Nom Abonnement', 'Client', 'Email Client', 'Prix (Ar)', 'Date Début', 'Date Fin', 'Durée (mois)', 'Statut', 'Description'])
     
     abonnements = Subscription.objects.all().order_by('-date_creation')
     for abonnement in abonnements:
@@ -427,7 +427,7 @@ def export_subscriptions_pdf(request):
     
     if abonnements:
         # En-têtes du tableau
-        data = [['Abonnement', 'Client', 'Prix (€)', 'Début', 'Fin', 'Statut']]
+        data = [['Abonnement', 'Client', 'Prix (Ar)', 'Début', 'Fin', 'Statut']]
         
         for abonnement in abonnements:
             data.append([
