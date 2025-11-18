@@ -9,24 +9,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^c(s!rgg$-)0@g0(ixtqv19dgoli#)#%pf9)gt6#*o2dugz#ii'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-^c(s!rgg$-)0@g0(ixtqv19dgoli#)#%pf9)gt6#*o2dugz#ii')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if os.environ.get('DJANGO_ALLOWED_HOSTS') else []
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'subscriptions.apps.SubscriptionsConfig', 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'subscriptions', 
 ]
 
 
@@ -95,7 +95,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = os.environ.get('DJANGO_TIME_ZONE', 'UTC')
 
 USE_I18N = True
 
@@ -105,7 +105,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+STATIC_ROOT = os.environ.get('DJANGO_STATIC_ROOT', os.path.join(BASE_DIR, 'staticfiles'))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -113,31 +117,25 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# Fichiers statiques (CSS, JS, images)
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
-
 # Fichiers uploadés
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-# Configuration Email
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'abonnementprojet@gmail.com'
-EMAIL_HOST_PASSWORD = 'ttwb ebgv evum oppt'
-DEFAULT_FROM_EMAIL = 'abonnementprojet@gmail.com'
-SERVER_EMAIL = 'abonnementprojet@gmail.com'
-MANAGER_EMAIL = 'abonnementprojet@gmail.com'
+# Configuration Email (utiliser variables d'environnement en prod)
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'abonnementprojet@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'ttwb ebgv evum oppt')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+SERVER_EMAIL = os.environ.get('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
+MANAGER_EMAIL = os.environ.get('MANAGER_EMAIL', DEFAULT_FROM_EMAIL)
 
 
 # Pour les tests en développement, vous pouvez utiliser la console :
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# export EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 
 # -------------------
 # Paramètres d'authentification / redirections
@@ -149,5 +147,4 @@ LOGIN_REDIRECT_URL = 'subscriptions:dashboard'
 # Après déconnexion, redirige vers la page de connexion
 LOGOUT_REDIRECT_URL = 'subscriptions:login'
 
-# Remarque/ sécurité : il est fortement recommandé d'utiliser des variables d'environnement
-# pour EMAIL_HOST_USER et EMAIL_HOST_PASSWORD en production (ne pas committer de secrets).
+# Remarque/ sécurité : utiliser des variables d'environnement pour EMAIL_HOST_USER et EMAIL_HOST_PASSWORD en production.

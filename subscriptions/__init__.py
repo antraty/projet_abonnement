@@ -1,0 +1,2 @@
+# Garantir que l'AppConfig est prise en compte si INSTALLED_APPS est resté 'subscriptions'
+default_app_config = 'subscriptions.apps.SubscriptionsConfig'  # optionnel si INSTALLED_APPS utilise already 'subscriptions.apps.SubscriptionsConfig'
