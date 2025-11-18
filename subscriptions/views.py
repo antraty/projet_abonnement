@@ -28,6 +28,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.http import HttpResponse
 from .notifications import send_daily_report
+from .notifications import send_upcoming_expiration_alerts
 
 
 @login_required
@@ -472,3 +473,6 @@ def export_subscriptions_pdf(request):
 def send_daily_report_view(request):
     send_daily_report()
     return HttpResponse("Rapport quotidien envoyé !")
+
+def expire_alerts_view(request):
+    return send_upcoming_expiration_alerts()

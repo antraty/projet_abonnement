@@ -8,32 +8,43 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <div class="header">
-        <h1>Gestion d'Abonnements</h1>
-        <div class="nav">
-            <a href="{% url 'subscriptions:dashboard' %}">Tableau de Bord</a>
-            <a href="{% url 'subscriptions:client_list' %}">Clients</a>
-            <a href="{% url 'subscriptions:subscription_list' %}">Abonnements</a>
-            <a href="{% url 'subscriptions:mail' %}">Rapport journalière</a>
+    <video class="bg-video" autoplay muted loop playsinline>
+        <source src="{% static 'videos/MHHM9797.mp4' %}" type="video/mp4">
+    </video>
 
-            
-        <!-- Bienvenue + Logout à droite -->
-            <div class="user-info">
-                {% if user.is_authenticated %}
-                    <span class="welcome">Bienvenue, {{ user.username }}</span>
-                    <form action="{% url 'subscriptions:logout' %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="logout-btn">Déconnexion</button>
-                    </form>
-                {% endif %}
+    <div class="app-content">
+        <div class="header">
+            <div class="header-top">
+                <div class="logo-wrapper">
+                    <img src="{% static 'img/logo-app.png.jpeg' %}" alt="Logo application" class="app-logo">
+                </div>
+
+                <h1>Gestion d'Abonnements</h1>
+
+                <!-- Bienvenue + Logout à droite -->
+                <div class="user-info">
+                    {% if user.is_authenticated %}
+                        <form action="{% url 'subscriptions:logout' %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-btn">Déconnexion</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="nav">
+                <a href="{% url 'subscriptions:dashboard' %}">Tableau de Bord</a>
+                <a href="{% url 'subscriptions:client_list' %}">Clients</a>
+                <a href="{% url 'subscriptions:subscription_list' %}">Abonnements</a>
+                <a href="{% url 'subscriptions:dashboard' %}">Tableau de Bord</a>
+                <a href="{% url 'subscriptions:mail' %}">Rapport journalière</a>
             </div>
         </div>
-    </div>
 
-    
-    <div class="container">
-        {% block content %}
-        {% endblock %}
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
     </div>
 </body>
 </html>

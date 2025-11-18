@@ -3,7 +3,8 @@ from django.urls import path
 from . import views
 from . import auth_views as local_auth_views
 from django.contrib.auth import views as auth_views
-from .views import send_daily_report_view
+from .views import send_daily_report_view, expire_alerts_view
+
 
 app_name = 'subscriptions'
 
@@ -17,6 +18,7 @@ urlpatterns = [
     # Vues protégées
     path('', login_required(views.dashboard), name='dashboard'),
     path('mail/',login_required(send_daily_report_view),name='mail'),
+    path('expire/',login_required(expire_alerts_view), name='expire'),
     path('clients/', login_required(views.client_list), name='client_list'),
     path('clients/nouveau/', login_required(views.client_create), name='client_create'),
     path('clients/<int:pk>/modifier/', login_required(views.client_edit), name='client_edit'),
