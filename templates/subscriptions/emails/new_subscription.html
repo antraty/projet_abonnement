@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Confirmation de votre abonnement</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; padding: 0; margin: 0; background-color: #f0f0f0;">
+
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+
+        <div style="background: #27ae60; color: white; padding: 20px; text-align: center; border-radius: 6px 6px 0 0;">
+            <h1 style="margin: 0; font-size: 26px;">🎉 Votre abonnement est confirmé</h1>
+        </div>
+
+        <div style="background: #ffffff; padding: 20px; border-left: 1px solid #ddd; border-right: 1px solid #ddd;">
+
+            <p>Bonjour <strong>{{ client.nom }}</strong>,</p>
+
+            <p>Nous vous confirmons que votre nouvel abonnement a bien été activé. Vous trouverez ci-dessous les détails :</p>
+
+            <div style="background: #f8f9fa; padding: 15px; margin-top: 15px; border-radius: 5px; border: 1px solid #ddd;">
+                <h3 style="margin-top: 0;">Détails de votre abonnement :</h3>
+
+                <p><strong>Type d'abonnement :</strong> {{ abonnement.nom_abonnement }}</p>
+                <p><strong>Prix :</strong> {{ abonnement.prix }}€</p>
+                <p><strong>Durée :</strong> {{ abonnement.duree_mois }} mois</p>
+                <p><strong>Validité :</strong> du {{ abonnement.date_debut|date:"d/m/Y" }} au {{ abonnement.date_fin|date:"d/m/Y" }}</p>
+                <p><strong>Statut :</strong> {{ abonnement.get_statut_display }}</p>
+
+                {% if abonnement.description %}
+                <p><strong>Informations complémentaires :</strong> {{ abonnement.description }}</p>
+                {% endif %}
+            </div>
+
+            <p style="margin-top: 20px;">Si vous avez des questions ou si vous souhaitez modifier votre abonnement, n'hésitez pas à nous contacter.</p>
+
+            <p>Cordialement,<br><strong>L'équipe Support</strong></p>
+
+        </div>
+
+        <div style="background: #f8f8f8; padding: 15px; text-align: center; border: 1px solid #ddd; border-radius: 0 0 6px 6px; font-size: 0.9em; color: #555;">
+            <p style="margin: 0;">Merci de votre confiance !</p>
+        </div>
+
+    </div>
+
+</body>
+</html>

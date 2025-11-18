@@ -1,0 +1,201 @@
+{% extends 'subscriptions/base.html' %}
+
+{% block title %}Liste des Abonnements - Gestion d'Abonnements{% endblock %}
+
+{% block content %}
+<h2>Liste des Abonnements</h2>
+
+<!-- Barre de recherche et filtres -->
+<div class="table-container" style="margin-bottom: 2rem; padding: 1.5rem;">
+    <form method="get" style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 1rem; align-items: end;">
+        <!-- Recherche -->
+        <div>
+            <label for="search" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">
+                Rechercher
+            </label>
+            <input 
+                type="text" 
+                name="q" 
+                id="search"
+                value="{{ query }}"
+                placeholder="Nom abonnement, client, description..." 
+                class="form-control"
+            >
+        </div>
+        
+        <!-- Filtre par statut -->
+        <div>
+            <label for="statut-filter" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">
+                Filtrer par statut
+            </label>
+            <select name="statut" id="statut-filter" class="form-control">
+                <option value="">Tous les statuts</option>
+                <option value="actif" {% if statut_filter == 'actif' %}selected{% endif %}>Actif</option>
+                <option value="inactif" {% if statut_filter == 'inactif' %}selected{% endif %}>Inactif</option>
+                <option value="suspendu" {% if statut_filter == 'suspendu' %}selected{% endif %}>Suspendu</option>
+                <option value="expire" {% if statut_filter == 'expire' %}selected{% endif %}>Expiré</option>
+            </select>
+        </div>
+        
+        <!-- Boutons -->
+        <div>
+            <button type="submit" class="btn" style="margin-bottom: 0;">
+                Appliquer
+            </button>
+            {% if query or statut_filter %}
+            <a href="{% url 'subscriptions:subscription_list' %}" class="btn btn-secondary" style="margin-top: 0.5rem; display: block;">
+                Effacer
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Résultats -->
+{% if abonnements %}
+<div class="table-container">
+    <div style="padding: 1rem; background: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+        <strong>{{ abonnements.paginator.count }}</strong> abonnement(s) trouvé(s)
+        {% if query %} pour "{{ query }}"{% endif %}
+        {% if statut_filter %} | Statut: {{ statut_filter }}{% endif %}
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Client</th>
+                <th>Prix</th>
+                <th>Début</th>
+                <th>Fin</th>
+                <th>Durée</th>
+                <th>Statut</th>
+                <th>Actions</th>
+                <th>Relance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for abonnement in abonnements %}
+            <tr>
+                <td>
+                    <strong>{{ abonnement.nom_abonnement }}</strong>
+                    {% if abonnement.description %}
+                    <br><small style="color: #666;">{{ abonnement.description|truncatewords:10 }}</small>
+                    {% endif %}
+                </td>
+                <td>
+                    {{ abonnement.client.nom }}
+                    {% if abonnement.client.nom_entreprise %}
+                    <br><small style="color: #666;">{{ abonnement.client.nom_entreprise }}</small>
+                    {% endif %}
+                </td>
+                <td>
+                    <strong style="color: #2c3e50; font-size: 1.1rem;">{{ abonnement.prix }} €</strong>
+                </td>
+                <td>{{ abonnement.date_debut|date:"d/m/Y" }}</td>
+                <td>
+                    {{ abonnement.date_fin|date:"d/m/Y" }}
+                    {% if abonnement.est_expire %}
+                    <br><small style="color: #e74c3c;">Expiré</small>
+                    {% endif %}
+                </td>
+                <td>{{ abonnement.duree_mois }} mois</td>
+                <td>
+                    <span class="badge badge-{{ abonnement.statut }}">
+                        {{ abonnement.get_statut_display }}
+                    </span>
+                </td>
+                <td>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <a href="{% url 'subscriptions:subscription_edit' abonnement.pk %}" 
+                           class="btn" 
+                           style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #17a2b8;">
+                            Edit
+                        </a>
+                        <a href="{% url 'subscriptions:subscription_delete' abonnement.pk %}" 
+                           class="btn btn-secondary" 
+                           style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #e74c3c;">
+                            Delete
+                        </a>
+                    </div>
+                </td>
+
+                <!-- Colonne Relance -->
+                <td>
+                    <form method="post" action="{% url 'subscriptions:subscription_renew' abonnement.pk %}" style="display:inline;">
+                        {% csrf_token %}
+
+                        <!-- Choix de la durée en mois -->
+                        <input type="number" name="duree_mois_relance" min="1" max="24" value="1"
+                               style="width: 50px; margin-right: 0.5rem;">
+
+                        <button
+                            type="submit"
+                            class="btn btn-secondary"
+                            onclick="return confirm('Confirmer la relance de cet abonnement ?');"
+                            title="Relancer l'abonnement"
+                            style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #6c757d;">
+                            Relancer
+                        </button>
+                    </form>
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div style="padding: 1rem; display:flex; justify-content:center; gap: 0.5rem; align-items:center; margin-top: 1rem;">
+        {% if abonnements.has_previous %}
+            <a href="?page={{ abonnements.previous_page_number }}{% if params %}&{{ params }}{% endif %}" class="btn btn-secondary">Précédent</a>
+        {% else %}
+            <span class="btn btn-secondary" style="opacity:0.5; cursor:default;">Précédent</span>
+        {% endif %}
+
+        {% for i in abonnements.paginator.page_range %}
+            {% if abonnements.number == i %}
+                <span class="btn" style="font-weight:700;">{{ i }}</span>
+            {% else %}
+                <a href="?page={{ i }}{% if params %}&{{ params }}{% endif %}" class="btn btn-secondary">{{ i }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if abonnements.has_next %}
+            <a href="?page={{ abonnements.next_page_number }}{% if params %}&{{ params }}{% endif %}" class="btn btn-secondary">Suivant</a>
+        {% else %}
+            <span class="btn btn-secondary" style="opacity:0.5; cursor:default;">Suivant</span>
+        {% endif %}
+    </div>
+
+</div>
+{% else %}
+<div style="text-align: center; padding: 3rem; color: #666;">
+    {% if query or statut_filter %}
+    <p style="font-size: 1.2rem; margin-bottom: 1rem;">Aucun abonnement trouvé</p>
+    <p>Aucun abonnement ne correspond à vos critères de recherche.</p>
+    {% else %}
+    <p style="font-size: 1.2rem; margin-bottom: 1rem;">Aucun abonnement pour le moment</p>
+    <p>Commencez par ajouter votre premier abonnement !</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<div style="margin-top: 2rem; text-align: center;">
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem;">
+        <a href="{% url 'subscriptions:export_subscriptions_pdf' %}" class="btn" style="background: #e74c3c;">
+            Exporter en PDF
+        </a>
+        <a href="{% url 'subscriptions:export_subscriptions_csv' %}" class="btn" style="background: #27ae60;">
+            Exporter en CSV
+        </a>
+    </div>
+    <a href="{% url 'subscriptions:subscription_create' %}" class="btn">
+        Ajouter un Abonnement
+    </a>
+    <a href="{% url 'subscriptions:client_create' %}" class="btn btn-secondary">
+        Ajouter un Client
+    </a>
+</div>
+
+{% endblock %}

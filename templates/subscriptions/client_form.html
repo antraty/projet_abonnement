@@ -1,0 +1,59 @@
+{% extends 'subscriptions/base.html' %}
+
+{% block title %}
+    {% if editing %}Modifier {{ client.nom }}{% else %}Nouveau Client{% endif %} - Gestion d'Abonnements
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <h2>
+        {% if editing %}
+            Modifier le Client
+        {% else %}
+            Ajouter un Nouveau Client
+        {% endif %}
+    </h2>
+    
+    {% if messages %}
+    <div style="margin-bottom: 2rem;">
+        {% for message in messages %}
+        <div class="alert" style="background: #d4edda; color: #155724; border-color: #c3e6cb;">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="table-container">
+        <form method="post" style="padding: 2rem;">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div style="margin-bottom: 1.5rem;">
+                <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #2c3e50;">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.help_text %}
+                <small style="color: #666; font-size: 0.8rem;">{{ field.help_text }}</small>
+                {% endif %}
+                {% if field.errors %}
+                <div style="color: #e74c3c; font-size: 0.8rem; margin-top: 0.25rem;">
+                    {{ field.errors }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn" style="flex: 1;">
+                    {% if editing %}💾 Sauvegarder{% else %}Créer le Client{% endif %}
+                </button>
+                <a href="{% url 'subscriptions:client_list' %}" class="btn btn-secondary" style="flex: 1; text-align: center;">
+                    Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

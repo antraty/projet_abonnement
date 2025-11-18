@@ -1,0 +1,34 @@
+# Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+*.sqlite3
+
+# Environnements virtuels
+.env
+.venv
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Fichiers de sauvegarde
+*.bak
+*.backup
+
+# Settings locaux
+settings/local.py
+settings/dev.py
+
+# Fichiers de médias
+media/
+staticfiles/
