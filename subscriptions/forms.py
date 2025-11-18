@@ -70,7 +70,7 @@ class SubscriptionForm(forms.ModelForm):
             'client': 'Client',
             'nom_abonnement': 'Nom de l\'abonnement',
             'description': 'Description',
-            'prix': 'Prix (€)',
+            'prix': 'Prix (Ar)',
             'date_debut': 'Date de début',
             'date_fin': 'Date de fin',
             'duree_mois': 'Durée (mois)',

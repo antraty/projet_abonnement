@@ -46,7 +46,7 @@ def send_daily_report(to_email=None):
         f"Rapport du {stats['date']}:\n"
         f"Nouveaux clients: {stats['nouveaux_clients']}\n"
         f"Nouveaux abonnements: {stats['nouveaux_abonnements']}\n"
-        f"Chiffre d'affaires: {stats['ca_du_jour']}€\n"
+        f"Chiffre d'affaires: {stats['ca_du_jour']}Ar\n"
         f"Abonnements expirant demain: {stats['abonnements_expirant_demain']}\n"
     )
     
@@ -90,7 +90,7 @@ def send_upcoming_expiration_alerts(jours_avant_expiration=3):
             f"Email: {client.email}\n"
             f"Téléphone: {client.telephone or 'Non renseigné'}\n"
             f"Date d'expiration: {abonnement.date_fin}\n"
-            f"Prix: {abonnement.prix}€\n"
+            f"Prix: {abonnement.prix}Ar\n"
             f"{'Description: ' + abonnement.description if abonnement.description else ''}"
         )
 

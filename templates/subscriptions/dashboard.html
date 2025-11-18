@@ -23,7 +23,7 @@
         <small>{{ advanced_stats.repartition_statuts.actif|default:0 }} actifs</small>
     </div>
     <div class="stat-card">
-        <span class="stat-number">{{ advanced_stats.chiffre_affaires }}€</span>
+        <span class="stat-number">{{ advanced_stats.chiffre_affaires }}Ar</span>
         <div>Chiffre d'Affaires</div>
         <small>Total cumulé</small>
     </div>
@@ -146,7 +146,7 @@
                     <tr>
                         <td>{{ abonnement.nom_abonnement }}</td>
                         <td>{{ abonnement.client.nom }}</td>
-                        <td>{{ abonnement.prix }} €</td>
+                        <td>{{ abonnement.prix }} Ar</td>
                         <td>
                             <span class="badge badge-{{ abonnement.statut }}">
                                 {{ abonnement.get_statut_display }}
