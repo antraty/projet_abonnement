@@ -23,8 +23,12 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.units import inch
 from io import BytesIO
 from .utils import get_advanced_stats, generate_clients_chart, generate_subscriptions_chart, generate_types_chart
-from .notifications import send_new_subscription_notification
+from .notifications import send_new_subscription_email
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
+from django.http import HttpResponse
+from .notifications import send_daily_report
+
 
 @login_required
 def dashboard(request):
@@ -319,9 +323,7 @@ def subscription_create(request):
             abonnement = form.save()
             messages.success(request, 'Abonnement créé avec succès !')
             
-            # Envoyer une notification email
-            send_new_subscription_notification(abonnement)
-            
+            send_new_subscription_email(abonnement) 
             return redirect('subscriptions:subscription_list')
     else:
         form = SubscriptionForm()
@@ -466,3 +468,7 @@ def export_subscriptions_pdf(request):
     response['Content-Disposition'] = 'attachment; filename="abonnements.pdf"'
     
     return response
+
+def send_daily_report_view(request):
+    send_daily_report()
+    return HttpResponse("Rapport quotidien envoyé !")

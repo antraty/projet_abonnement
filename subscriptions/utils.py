@@ -6,6 +6,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 import base64
+from datetime import timedelta
 
 def get_advanced_stats():
     total_clients = Client.objects.count()
@@ -58,6 +59,29 @@ def get_advanced_stats():
         'repartition_types': repartition_types,
         'abonnements_ce_mois': abonnements_ce_mois,
         'clients_ce_mois': clients_ce_mois,
+    }
+
+
+def get_daily_stats():
+    date = timezone.localdate()
+
+    nouveaux_clients = Client.objects.filter(date_creation__date=date).count()
+    nouveaux_abonnements = Subscription.objects.filter(date_creation__date=date).count()
+
+    ca_du_jour = Subscription.objects.filter(date_creation__date=date).aggregate(
+        total=Sum('prix')
+    )['total'] or 0
+
+    abonnements_expirant_demain = Subscription.objects.filter(
+        date_fin=date + timedelta(days=1)
+    ).count()
+
+    return {
+        'date': date,
+        'nouveaux_clients': nouveaux_clients,
+        'nouveaux_abonnements': nouveaux_abonnements,
+        'ca_du_jour': round(ca_du_jour, 2),
+        'abonnements_expirant_demain': abonnements_expirant_demain,
     }
 
 

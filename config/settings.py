@@ -124,15 +124,16 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-# Configuration Email (pour les notifications)
+# Configuration Email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'johanharirojo@gmail.com'
-EMAIL_HOST_PASSWORD = 'dyvo'
-DEFAULT_FROM_EMAIL = 'johanharirojo@gmail.com'
-SERVER_EMAIL = 'johanharirojo@gmail.com'
+EMAIL_HOST_USER = 'abonnementprojet@gmail.com'
+EMAIL_HOST_PASSWORD = 'ttwb ebgv evum oppt'
+DEFAULT_FROM_EMAIL = 'abonnementprojet@gmail.com'
+SERVER_EMAIL = 'abonnementprojet@gmail.com'
+MANAGER_EMAIL = 'abonnementprojet@gmail.com'
 
 
 # Pour les tests en développement, vous pouvez utiliser la console :
