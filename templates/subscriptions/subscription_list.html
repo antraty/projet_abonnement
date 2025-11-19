@@ -3,6 +3,69 @@
 {% block title %}Liste des Abonnements - Gestion d'Abonnements{% endblock %}
 
 {% block content %}
+<style>
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.badge-actif {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-inactif {
+    background-color: #6c757d;
+    color: white;
+}
+
+.badge-suspendu {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-expire {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* Styles pour le modal */
+#factureModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+</style>
+
 <h2>Liste des Abonnements</h2>
 
 <!-- Barre de recherche et filtres -->
@@ -106,16 +169,25 @@
                     </span>
                 </td>
                 <td>
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 0.5rem">
+                        <!-- BOUTON FACTURER AVEC PK -->
+                        <button 
+                            type="button"
+                            data-abonnement-id="{{ abonnement.pk }}"
+                            class="btn btn-facturer"
+                            style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #28a745; color: white;">
+                            Facturer
+                        </button>
+                        
                         <a href="{% url 'subscriptions:subscription_edit' abonnement.pk %}" 
                            class="btn" 
                            style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #17a2b8;">
-                            Edit
+                            Modifier
                         </a>
                         <a href="{% url 'subscriptions:subscription_delete' abonnement.pk %}" 
                            class="btn btn-secondary" 
                            style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #e74c3c;">
-                            Delete
+                            Supprimer
                         </a>
                     </div>
                 </td>
@@ -125,7 +197,6 @@
                     <form method="post" action="{% url 'subscriptions:subscription_renew' abonnement.pk %}" style="display:inline;">
                         {% csrf_token %}
 
-                        <!-- Choix de la durée en mois -->
                         <input type="number" name="duree_mois_relance" min="1" max="24" value="1"
                                style="width: 50px; margin-right: 0.5rem;">
 
@@ -198,4 +269,108 @@
     </a>
 </div>
 
+<div id="factureModal">
+    <div class="modal-content">
+        <h3 style="margin-bottom: 1rem;">Génération de Facture</h3>
+        <p id="modalMessage">Génération de la facture en cours...</p>
+        <div style="margin-top: 1.5rem;">
+            <button id="modalClose" onclick="closeModal()" style="display: none;" class="btn">Fermer</button>
+            <button id="modalView" onclick="viewFacture()" style="display: none; background: #28a745; color: white;" class="btn">Voir la Facture</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentFactureId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-facturer').forEach(button => {
+        button.addEventListener('click', function() {
+            const abonnementId = this.getAttribute('data-abonnement-id');
+            genererFacture(abonnementId);
+        });
+    });
+
+    document.getElementById('factureModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+});
+
+function genererFacture(abonnementPk) {
+    console.log("PK reçu:", abonnementPk);
+    
+    showModal('Génération de la facture en cours...');
+    
+    fetch('/facturation/api/facture/abonnement/generer/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken(),
+        },
+        body: JSON.stringify({
+            abonnement_id: abonnementPk
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erreur réseau: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            currentFactureId = data.facture_id;
+            if (data.existant) {
+                showModal('Facture déjà existante pour ce mois!', true);
+            } else {
+                showModal('Facture générée avec succès!', true);
+            }
+        } else {
+            showModal('Erreur: ' + data.error, false);
+        }
+    })
+    .catch(error => {
+        showModal('Erreur réseau: ' + error.message, false);
+    });
+}
+
+function showModal(message, showButtons = false) {
+    const modal = document.getElementById('factureModal');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalClose = document.getElementById('modalClose');
+    const modalView = document.getElementById('modalView');
+    
+    modalMessage.textContent = message;
+    modal.style.display = 'flex';
+    
+    if (showButtons) {
+        modalClose.style.display = 'inline-block';
+        modalView.style.display = 'inline-block';
+    } else {
+        modalClose.style.display = 'inline-block';
+        modalView.style.display = 'none';
+    }
+}
+
+function closeModal() {
+    document.getElementById('factureModal').style.display = 'none';
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}
+
+function viewFacture() {
+    if (currentFactureId) {
+        window.open('/facturation/facture/' + currentFactureId + '/', '_blank');
+    }
+    closeModal();
+}
+
+function getCsrfToken() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    return csrfToken ? csrfToken.value : '';
+}
+</script>
 {% endblock %}
