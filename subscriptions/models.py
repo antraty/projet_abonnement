@@ -9,6 +9,8 @@ class Client(models.Model):
         ('personnel', 'Personnel'),
         ('entreprise', 'Entreprise'),
     ]
+    # Liaison facultative vers un User Django
+    user = models.OneToOneField(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='client')
     nom = models.CharField(max_length=100)
     email = models.EmailField()
     telephone = models.CharField(max_length=20, blank=True)
@@ -29,7 +31,6 @@ class Client(models.Model):
     class Meta:
         verbose_name = "Client"
         verbose_name_plural = "Clients"
-
 
 class Subscription(models.Model):
     STATUT_CHOICES = [

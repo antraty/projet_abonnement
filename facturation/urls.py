@@ -1,4 +1,5 @@
 from django.urls import path
+from . import invoices 
 from . import views
 
 app_name = 'facturation'

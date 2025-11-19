@@ -6,9 +6,17 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from num2words import num2words
 import json
+import logging
+
+from django.core.mail import EmailMessage
+from django.conf import settings
 
 from subscriptions.models import Subscription, Client
 from .models import Facture, LigneFacture
+from .invoices import generate_invoice_pdf
+
+logger = logging.getLogger(__name__)
+
 
 def convertir_ariary_en_lettres(montant_ariary):
     """Convertit un montant en Ariary en lettres français"""
@@ -59,7 +67,8 @@ class GenererFactureAbonnementAPI(View):
                     'success': True,
                     'facture_id': facture_existante.id,
                     'message': 'Facture déjà existante pour ce mois',
-                    'existant': True
+                    'existant': True,
+                    'email_sent': False
                 })
             
             facture = Facture.objects.create(
@@ -78,15 +87,64 @@ class GenererFactureAbonnementAPI(View):
             )
             
             facture.calculer_total()
-            
+
+            # --- Générer le PDF et envoyer l'email au client ---
+            email_sent = False
+            email_error = None
+            pdf_bytes = None
+
+            try:
+                pdf_bytes = generate_invoice_pdf(facture)
+            except Exception as e:
+                logger.exception("Erreur génération PDF pour facture id=%s : %s", facture.id, e)
+                email_error = f"Erreur génération PDF: {e}"
+
+            client_email = facture.client.email if facture.client else None
+            if client_email and pdf_bytes:
+                subject = f"Votre facture {facture.numero}"
+                body = (
+                    f"Bonjour {facture.client.nom},\n\n"
+                    f"Veuillez trouver ci-joint la facture {facture.numero}.\n\n"
+                    "Cordialement,\nLe service facturation"
+                )
+                email = EmailMessage(
+                    subject=subject,
+                    body=body,
+                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
+                    to=[client_email],
+                )
+                email.attach(f"{facture.numero}.pdf", pdf_bytes, 'application/pdf')
+                try:
+                    sent = email.send(fail_silently=False)
+                    email_sent = bool(sent)
+                    if email_sent:
+                        logger.info("Facture %s envoyée par mail à %s", facture.numero, client_email)
+                    else:
+                        logger.warning("send() a retourné %s pour facture id=%s", sent, facture.id)
+                except Exception as e:
+                    logger.exception("Erreur envoi mail facture id=%s à %s : %s", facture.id, client_email, e)
+                    email_error = str(e)
+            else:
+                if not client_email:
+                    logger.warning("Client sans email pour la facture id=%s", facture.id)
+                    if not email_error:
+                        email_error = "Adresse email client absente."
+                if not pdf_bytes:
+                    logger.warning("PDF non généré pour la facture id=%s", facture.id)
+                    if not email_error:
+                        email_error = "PDF non généré."
+
             return JsonResponse({
                 'success': True,
                 'facture_id': facture.id,
                 'message': 'Facture générée avec succès',
-                'existant': False
+                'existant': False,
+                'email_sent': email_sent,
+                'email_error': email_error
             })
             
         except Exception as e:
+            logger.exception("Erreur génération facture via API: %s", e)
             return JsonResponse({
                 'success': False,
                 'error': str(e)
