@@ -18,6 +18,28 @@ from .invoices import generate_invoice_pdf
 logger = logging.getLogger(__name__)
 
 
+def get_next_invoice_number():
+    """Génère un numéro de facture unique basé sur l'année et un séquentiel"""
+    current_year = timezone.now().year
+    
+    # Trouver le dernier numéro de facture pour cette année
+    last_invoice = Facture.objects.filter(
+        numero__startswith=f"FACT-{current_year}-"
+    ).order_by('-numero').first()
+    
+    if last_invoice:
+        try:
+            # Extraire le séquentiel du dernier numéro
+            last_seq = int(last_invoice.numero.split('-')[-1])
+            next_seq = last_seq + 1
+        except (ValueError, IndexError):
+            next_seq = 1
+    else:
+        next_seq = 1
+    
+    return f"FACT-{current_year}-{next_seq:04d}"
+
+
 def convertir_ariary_en_lettres(montant_ariary):
     """Convertit un montant en Ariary en lettres français"""
     try:
@@ -71,7 +93,11 @@ class GenererFactureAbonnementAPI(View):
                     'email_sent': False
                 })
             
+            # Générer un numéro de facture unique
+            invoice_number = get_next_invoice_number()
+            
             facture = Facture.objects.create(
+                numero=invoice_number,  # Ajout du numéro unique
                 client=abonnement.client,
                 abonnement=abonnement,
                 date_echeance=timezone.now().date() + timezone.timedelta(days=30),

@@ -119,14 +119,13 @@ def generate_subscriptions_chart():
     stats = get_advanced_stats()
     
     plt.figure(figsize=(6, 4))
-    labels = ['Actif', 'Inactif', 'Suspendu', 'Expiré']
+    labels = ['Actif', 'Suspendu', 'Expiré']
     sizes = [
         stats['repartition_statuts']['actif'],
-        stats['repartition_statuts']['inactif'],
         stats['repartition_statuts']['suspendu'],
         stats['repartition_statuts']['expire']
     ]
-    colors = ['#2ecc71', '#e74c3c', '#f39c12', '#95a5a6']  
+    colors = ['#2ecc71', '#f39c12', '#95a5a6']  
     plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
     plt.axis('equal')
     plt.title('Répartition des Abonnements par Statut')
