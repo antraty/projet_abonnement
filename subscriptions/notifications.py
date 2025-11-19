@@ -1,17 +1,19 @@
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.utils import timezone
-from django.core.mail import send_mail
-from django.http import HttpResponse
+from django.http import HttpResponse  # Gardé si utilisé ailleurs, sinon à supprimer
 from .utils import get_daily_stats
 from datetime import timedelta
 from .models import Subscription
+import logging
+
+logger = logging.getLogger(__name__)
 
 def send_new_subscription_email(abonnement):
     client = abonnement.client
 
-    subject = " Nouvel abonnement créé"
+    subject = "Nouvel abonnement créé"
     from_email = settings.DEFAULT_FROM_EMAIL
     to = [client.email]
 
@@ -24,15 +26,18 @@ def send_new_subscription_email(abonnement):
     )
     text_content = f"Un nouvel abonnement a été créé pour {client.nom}."
 
-    send_mail(
-    subject=subject,
-    message=text_content,
-    from_email=from_email,
-    recipient_list=to,
-    html_message=html_content 
-    )
-    return HttpResponse('Message sent!')
-
+    try:
+        send_mail(
+            subject=subject,
+            message=text_content,
+            from_email=from_email,
+            recipient_list=to,
+            html_message=html_content 
+        )
+        logger.info("Email nouveau abonnement envoyé à %s (abonnement id=%s)", client.email, abonnement.id)
+    except Exception:
+        logger.exception("Erreur lors de l'envoi du mail de nouvel abonnement pour id=%s", abonnement.id)
+    # Ne renvoie pas HttpResponse : fonction utilitaire
 
 def send_daily_report(to_email=None):
     stats = get_daily_stats()
@@ -53,14 +58,18 @@ def send_daily_report(to_email=None):
     if to_email is None:
         to_email = [settings.MANAGER_EMAIL]
     
-    send_mail(
-        subject=f"Rapport quotidien - {stats['date']}",
-        message=text_content,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=to_email,
-        html_message=html_content,
-    )
-    return HttpResponse('Message sent!')
+    try:
+        send_mail(
+            subject=f"Rapport quotidien - {stats['date']}",
+            message=text_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=to_email,
+            html_message=html_content,
+        )
+        logger.info("Rapport quotidien envoyé à %s", to_email)
+    except Exception:
+        logger.exception("Erreur lors de l'envoi du rapport quotidien à %s", to_email)
+
 
 def send_upcoming_expiration_alerts(jours_avant_expiration=3):
     today = timezone.localdate()
@@ -94,13 +103,18 @@ def send_upcoming_expiration_alerts(jours_avant_expiration=3):
             f"{'Description: ' + abonnement.description if abonnement.description else ''}"
         )
 
-        send_mail(
-            subject=subject,
-            message=text_content,
-            from_email=from_email,
-            recipient_list=to,
-            html_message=html_content
-        )
-        emails_envoyes += 1
+        try:
+            send_mail(
+                subject=subject,
+                message=text_content,
+                from_email=from_email,
+                recipient_list=to,
+                html_message=html_content
+            )
+            emails_envoyes += 1
+            logger.info("Alerte expiration envoyée à %s pour abonnement id=%s", client.email, abonnement.id)
+        except Exception:
+            logger.exception("Erreur lors de l'envoi de l'alerte d'expiration à %s (abonnement id=%s)", client.email, abonnement.id)
 
-    return HttpResponse(f"{emails_envoyes} alertes envoyées !")
+    logger.info("%s alertes d'expiration envoyées.", emails_envoyes)
+    return emails_envoyes
